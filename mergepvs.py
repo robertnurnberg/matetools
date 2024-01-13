@@ -1,9 +1,9 @@
-import argparse, re, chess
+import argparse, chess, re
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Merge several .epd files with mates and PVs, which are assumed to be correct (possibly too short).",
+        description="Merge several .epd files with mates and PVs, which are assumed to be correct (possibly too short). Output is to stdout",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("source", help="The source .epd file.")

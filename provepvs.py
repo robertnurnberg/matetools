@@ -1,4 +1,4 @@
-import argparse, re, chess, chess.engine
+import argparse, chess, chess.engine, os, re
 
 
 def pv_status(fen, mate, pv):
@@ -24,11 +24,15 @@ def pv_status(fen, mate, pv):
 
 
 class Analyser:
-    def __init__(self, engine, nodes, depth, time, hash, threads):
-        self.engine = engine
-        self.limit = chess.engine.Limit(nodes=nodes, depth=depth, time=time)
-        self.hash = hash
-        self.threads = threads
+    def __init__(self, args):
+        self.engine = args.engine
+        self.limit = chess.engine.Limit(
+            nodes=args.nodes, depth=args.depth, time=args.time, mate=args.mate
+        )
+        self.hash = args.hash
+        self.threads = args.threads
+        self.depthMin = args.depthMin
+        self.depthMax = args.depthMax
 
     def analyze_fen(self, fen, bm, pv):
         engine = chess.engine.SimpleEngine.popen_uci(self.engine)
@@ -49,12 +53,13 @@ class Analyser:
         while board.move_stack:
             board.pop()
             ply -= 1
-            depth = min(30, max_ply - ply + 15)
+            depth = min(args.depthMax, max_ply - ply + args.depthMin)
             info = engine.analyse(board, chess.engine.Limit(depth=depth), game=board)
             if "score" in info:
                 score = info["score"].pov(board.turn)
                 print(f"ply {ply:3d}, score {score} (d{depth})")
 
+        # finally do the actual analysis, to try to prove the mate
         info = engine.analyse(board, self.limit, game=board)
         m, pv = None, None
         if "score" in info:
@@ -72,21 +77,23 @@ class Analyser:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Use mate PVs from cdb matetracker to guide analysis to prove mate.",
+        description="Use conjectured mate PVs from e.g. cdb matetracker to guide local analyses to prove mates.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "--epdFile",
         default="matetrackpv.epd",
-        help="file containing the positions and their mate scores",
+        help="file containing positions, their mate scores and possibly proven PVs",
     )
     parser.add_argument(
-        "--cdbFile", default="matetrack_cdbpv.epd", help="file with cdb mate PVs"
+        "--cdbFile",
+        default="../cdbmatetrack/matetrack_cdbpv.epd",
+        help="file with conjectured mate PVs",
     )
     parser.add_argument(
         "--outFile",
-        default="cdbpv.epd",
-        help="output file for new mates with their PVs",
+        default="provenpvs.epd",
+        help="output file for newly proven mates with their PVs",
     )
     parser.add_argument(
         "--engine",
@@ -98,15 +105,29 @@ if __name__ == "__main__":
         type=str,
         help="nodes limit per position, default: 10**6 without other limits, otherwise None",
     )
-    parser.add_argument("--depth", type=int, help="depth limit per position")
+    parser.add_argument("--depth", type=int, help="depth limit per puzzle position")
+    parser.add_argument("--mate", type=int, help="mate limit per puzzle position")
     parser.add_argument(
-        "--time", type=float, help="time limit (in seconds) per position"
+        "--time", type=float, help="time limit (in seconds) per puzzle position"
     )
     parser.add_argument("--hash", type=int, help="hash table size in MB")
     parser.add_argument(
         "--threads",
         type=int,
-        help="number of threads per position (values > 1 may lead to non-deterministic results)",
+        default=os.cpu_count(),
+        help="number of threads per position",
+    )
+    parser.add_argument(
+        "--depthMin",
+        type=int,
+        default=15,
+        help="search depth increases linearly from PV leaf node to puzzle positions, starting from this value",
+    )
+    parser.add_argument(
+        "--depthMax",
+        type=int,
+        default=30,
+        help="upper cap for search depth for backwards analysis",
     )
     parser.add_argument(
         "--mateType",
@@ -115,7 +136,12 @@ if __name__ == "__main__":
         help="type of positions to find PVs for (WARNING: use all or lost only for reliable engines!)",
     )
     args = parser.parse_args()
-    if args.nodes is None and args.depth is None and args.time is None:
+    if (
+        args.nodes is None
+        and args.depth is None
+        and args.time is None
+        and args.mate is None
+    ):
         args.nodes = 10**6
     elif args.nodes is not None:
         args.nodes = eval(args.nodes)
@@ -162,9 +188,7 @@ if __name__ == "__main__":
     total_count = len(ana_fens)
     print(f"Found {total_count} PVs we can use to try to prove/find mate PVs ...")
 
-    ana = Analyser(
-        args.engine, args.nodes, args.depth, args.time, args.hash, args.threads
-    )
+    ana = Analyser(args)
 
     with open(args.outFile, "w") as f:
         for i, (fen, bm, pv, oldpv) in enumerate(ana_fens):

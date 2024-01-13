@@ -1,9 +1,9 @@
-import argparse, re, chess
+import argparse, chess, re
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Use PV stored in .epd file to advance a number of plies. Can be used to change to-mate positions into to-be-mated positions, and vice-versa, in e.g. matetrackpv.epd.",
+        description="Use PVs stored in .epd file to advance a number of plies. Can be used to change to-mate positions into to-be-mated positions, and vice-versa, in e.g. matetrackpv.epd.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(

@@ -1,6 +1,6 @@
-import argparse, re, concurrent.futures, chess, chess.engine
-from time import time
+import argparse, chess, chess.engine, concurrent.futures, re
 from multiprocessing import freeze_support, cpu_count
+from time import time
 from tqdm import tqdm
 
 
@@ -33,11 +33,13 @@ def pv_status(fen, mate, pv):
 
 
 class Analyser:
-    def __init__(self, engine, nodes, depth, time, hash, threads):
-        self.engine = engine
-        self.limit = chess.engine.Limit(nodes=nodes, depth=depth, time=time)
-        self.hash = hash
-        self.threads = threads
+    def __init__(self, args):
+        self.engine = args.engine
+        self.limit = chess.engine.Limit(
+            nodes=args.nodes, depth=args.depth, time=args.time, mate=args.mate
+        )
+        self.hash = args.hash
+        self.threads = args.threads
 
     def analyze_fens(self, fens):
         result_fens = []
@@ -65,7 +67,7 @@ class Analyser:
 if __name__ == "__main__":
     freeze_support()
     parser = argparse.ArgumentParser(
-        description="Add PVs for mates found in e.g. matetrack.epd.",
+        description="Add PVs for mates found by local analysis for positions in e.g. matetrack.epd.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -79,6 +81,7 @@ if __name__ == "__main__":
         help="nodes limit per position, default: 10**6 without other limits, otherwise None",
     )
     parser.add_argument("--depth", type=int, help="depth limit per position")
+    parser.add_argument("--mate", type=int, help="mate limit per position")
     parser.add_argument(
         "--time", type=float, help="time limit (in seconds) per position"
     )
@@ -86,7 +89,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--threads",
         type=int,
-        help="number of threads per position (values > 1 may lead to non-deterministic results)",
+        help="number of threads per position",
     )
     parser.add_argument(
         "--concurrency",
@@ -102,7 +105,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--outFile",
         default="matetrackpv.epd",
-        help="output file for mates with their PVs",
+        help="output file for mates with their mate scores and their PVs",
     )
     parser.add_argument(
         "--mateType",
@@ -116,9 +119,7 @@ if __name__ == "__main__":
     elif args.nodes is not None:
         args.nodes = eval(args.nodes)
 
-    ana = Analyser(
-        args.engine, args.nodes, args.depth, args.time, args.hash, args.threads
-    )
+    ana = Analyser(args)
 
     p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
     fens, ana_fens = [], []
@@ -159,6 +160,7 @@ if __name__ == "__main__":
         ("nodes", args.nodes),
         ("depth", args.depth),
         ("time", args.time),
+        ("mate", args.mate),
         ("hash", args.hash),
         ("threads", args.threads),
     ]
