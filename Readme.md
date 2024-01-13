@@ -1,4 +1,4 @@
-# Matetools
+# matetools
 
 A collection of Python scripts to manipulate and provide mating PVs for
 Chest-like EPD files. Such files store chess mate puzzles in the form
@@ -35,11 +35,14 @@ By way of example, the following EPD files are provided:
 [FishCooking](https://groups.google.com/g/fishcooking/c/lh1jTS4U9LU/m/zrvoYQZUCQAJ). It contains 6561 positions, with some wrongly classified
 mates, one draw and some illegal positions.
 * `matetrack.epd`: The successor to `ChestUCI_23102018.epd`, with all illegal positions removed and all known errors corrected. In 26 positions the side to move is going to get mated.
-* `matedtrack.epd`: Derived from `matetrack.epd` (using the script `advancepv.py`) by advancing one ply in all positions with `bm>1` that have a PV. In 6459 positions the side to move is going to get mated.
+* `matetrackpv.epd`: The same as `matetrack.epd` but with PVs leading to the checkmate where such a PV is known.
+* `matedtrack.epd`: Derived from `matetrackpv.epd` (using the script `advancepv.py`) by advancing one ply in all positions with `bm>1` that have a PV. In 6459 positions the side to move is going to get mated.
 
 ---
 ## Related repositories
 
 * [vondele/matetrack](https://github.com/vondele/matetrack)
-* [robertnurnberg/cdbmatetrack](https://github.com/robertnurnberg/cdbmatetrack) ---
+* [robertnurnberg/cdbmatetrack](https://github.com/robertnurnberg/cdbmatetrack) 
+
+---
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
