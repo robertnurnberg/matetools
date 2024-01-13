@@ -21,7 +21,7 @@ To this end the following scripts are provided:
 * `addpvs.py`: adds (missing) PVs to a given EPD file using a local engine (the
   script uses concurrency, results are available once _all_ positions have been
 processed)
-* `advancepv.py`: advances a number of plies in the given PVs to create new puzzles
+* `advancepvs.py`: advances a number of plies in the given PVs to create new puzzles
 * `mergepvs.py`: merges several EPD file containing PVs into one
 * `provepvs.py`: uses conjectured PVs to guide a local engine to find mates and
   prove PVs (the scripts works sequentially, proven PVs are available
@@ -36,7 +36,7 @@ By way of example, the following EPD files are provided:
 mates, one draw and some illegal positions.
 * `matetrack.epd`: The successor to `ChestUCI_23102018.epd`, with all illegal positions removed and all known errors corrected. In 26 positions the side to move is going to get mated.
 * `matetrackpv.epd`: The same as `matetrack.epd` but with PVs leading to the checkmate where such a PV is known.
-* `matedtrack.epd`: Derived from `matetrackpv.epd` (using the script `advancepv.py`) by advancing one ply in all positions with `bm>1` that have a PV. In 6459 positions the side to move is going to get mated.
+* `matedtrack.epd`: Derived from `matetrackpv.epd` (using the script `advancepvs.py`) by advancing one ply in all positions with `bm>1` that have a PV. In 6459 positions the side to move is going to get mated.
 
 ---
 ## Related repositories
