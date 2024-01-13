@@ -21,12 +21,12 @@ To this end the following scripts are provided:
 * `addpvs.py`: adds (missing) PVs to a given EPD file using a local engine (the
   script uses concurrency, results are available once _all_ positions have been
 processed)
+* `advancepv.py`: advances a number of plies in the given PVs to create new puzzles
+* `mergepvs.py`: merges several EPD file containing PVs into one
 * `provepvs.py`: uses conjectured PVs to guide a local engine to find mates and
   prove PVs (the scripts works sequentially, proven PVs are available
 immediately)
-* `mergepvs.py`: merges several EPD file containing PVs into one
 * `sortmates.py`: sorts the positions in an EPD file
-* `advancepv.py`: advances a number of plies in the given PVs to create new puzzles
 
 By way of example, the following EPD files are provided:
 
@@ -38,7 +38,6 @@ mates, one draw and some illegal positions.
 * `matedtrack.epd`: Derived from `matetrack.epd` (using the script `advancepv.py`) by advancing one ply in all positions with `bm>1` that have a PV. In 6459 positions the side to move is going to get mated.
 
 ---
-&nbsp;
 ## Related repositories
 
 * [vondele/matetrack](https://github.com/vondele/matetrack)
