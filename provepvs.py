@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--threads",
         type=int,
-        default=os.cpu_count() * 3 // 4,
+        default=max(1, os.cpu_count() * 3 // 4),
         help="number of threads per position",
     )
     parser.add_argument(
