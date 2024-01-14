@@ -142,7 +142,7 @@ if __name__ == "__main__":
         and args.time is None
         and args.mate is None
     ):
-        args.nodes = 10**6
+        args.nodes = 10 ** 6
     elif args.nodes is not None:
         args.nodes = eval(args.nodes)
 
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     with open(args.cdbFile) as f:
         for line in f:
             m = p.match(line)
-            assert m, "error"
+            assert m, f"error for line '{line[:-1]}' in file {args.cdbFile}"
             fen, bm = m.group(1), int(m.group(2))
             _, _, pv = line.partition("; PV: ")
             pv, _, _ = pv[:-1].partition(";")  # remove '\n'

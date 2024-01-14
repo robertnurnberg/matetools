@@ -19,7 +19,7 @@ if __name__ == "__main__":
     with open(args.source) as f:
         for line in f:
             m = p.match(line)
-            assert m, "error"
+            assert m, f"error for line '{line[:-1]}' in file {args.source}"
             fen, bm = m.group(1), int(m.group(2))
             fens.append((fen, bm, line))
 

@@ -20,7 +20,7 @@ if __name__ == "__main__":
         with open(filename) as f:
             for line in f:
                 m = p.match(line)
-                assert m, "error"
+                assert m, f"error for line '{line[:-1]}' in file {filename}"
                 fen, bm = m.group(1), int(m.group(2))
                 _, _, pv = line.partition("; PV: ")
                 pv, _, _ = pv[:-1].partition(";")  # remove '\n'
@@ -37,7 +37,6 @@ if __name__ == "__main__":
     with open(args.source) as f:
         for line in f:
             m = p.match(line)
-            assert m, "error"
             fen, bm = m.group(1), int(m.group(2))
             bm, pv = d.get(fen, (0, None))
             if pv is not None and pv:
