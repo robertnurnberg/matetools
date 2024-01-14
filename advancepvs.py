@@ -13,7 +13,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--outFile",
-        default="matedtrack.epd",
+        default="matedtrackpv.epd",
         help="output file with advanced positions, their mate scores and PVs",
     )
     parser.add_argument(
