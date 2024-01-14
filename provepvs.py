@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--threads",
         type=int,
-        default=os.cpu_count(),
+        default=os.cpu_count() * 3 // 4,
         help="number of threads per position",
     )
     parser.add_argument(
@@ -135,6 +135,11 @@ if __name__ == "__main__":
         default="won",
         help="type of positions to find PVs for (WARNING: use all or lost only for reliable engines!)",
     )
+    parser.add_argument(
+        "--onlyCompletePVs",
+        action="store_true",
+        help="Try to prove only complete PVs, leading to a checkmate in leaf node.",
+    )
     args = parser.parse_args()
     if (
         args.nodes is None
@@ -142,14 +147,14 @@ if __name__ == "__main__":
         and args.time is None
         and args.mate is None
     ):
-        args.nodes = 10 ** 6
+        args.nodes = 10**6
     elif args.nodes is not None:
         args.nodes = eval(args.nodes)
 
     p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
-    # prepare "cheat sheet" from cdb mate PVs
-    d = {}
+    d = {}  # prepare "cheat sheet" from cdb mate PVs
+    allowed = ["ok"] if args.onlyCompletePVs else ["ok", "short"]
     with open(args.cdbFile) as f:
         for line in f:
             m = p.match(line)
@@ -167,7 +172,7 @@ if __name__ == "__main__":
                     and bm < 0
                 )
                 and pv
-                and pv_status(fen, bm, pv) in ["ok", "short"]
+                and pv_status(fen, bm, pv) in allowed
             ):
                 d[fen] = bm, pv
 

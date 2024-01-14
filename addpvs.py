@@ -115,7 +115,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     if args.nodes is None and args.depth is None and args.time is None:
-        args.nodes = 10 ** 6
+        args.nodes = 10**6
     elif args.nodes is not None:
         args.nodes = eval(args.nodes)
 
