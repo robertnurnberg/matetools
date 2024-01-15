@@ -31,6 +31,7 @@ class Analyser:
         )
         self.hash = args.hash
         self.threads = args.threads
+        self.syzygyPath = args.syzygyPath
         self.depthMin = args.depthMin
         self.depthMax = args.depthMax
 
@@ -40,6 +41,8 @@ class Analyser:
             engine.configure({"Hash": self.hash})
         if self.threads is not None:
             engine.configure({"Threads": self.threads})
+        if self.syzygyPath is not None:
+            engine.configure({"SyzygyPath": self.syzygyPath})
         board = chess.Board(fen)
         # first clear hash with simple d1 search
         engine.analyse(board, chess.engine.Limit(depth=1), game=board)
@@ -117,6 +120,7 @@ if __name__ == "__main__":
         default=max(1, os.cpu_count() * 3 // 4),
         help="number of threads per position",
     )
+    parser.add_argument("--syzygyPath", help="path to syzygy EGTBs")
     parser.add_argument(
         "--depthMin",
         type=int,
