@@ -40,6 +40,7 @@ class Analyser:
         )
         self.hash = args.hash
         self.threads = args.threads
+        self.syzygyPath = args.syzygyPath
 
     def analyze_fens(self, fens):
         result_fens = []
@@ -48,6 +49,8 @@ class Analyser:
             engine.configure({"Hash": self.hash})
         if self.threads is not None:
             engine.configure({"Threads": self.threads})
+        if self.syzygyPath is not None:
+            engine.configure({"SyzygyPath": self.syzygyPath})
         for fen, bm, pvlength, line in fens:
             pv = None
             board = chess.Board(fen)
@@ -91,6 +94,7 @@ if __name__ == "__main__":
         type=int,
         help="number of threads per position",
     )
+    parser.add_argument("--syzygyPath", help="path to syzygy EGTBs")
     parser.add_argument(
         "--concurrency",
         type=int,
