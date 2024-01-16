@@ -124,12 +124,11 @@ if __name__ == "__main__":
         args.nodes = eval(args.nodes)
 
     ana = Analyser(args)
-
     p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
-    fens, ana_fens = [], []
 
     print("Loading FENs...")
 
+    fens, ana_fens = [], []
     with open(args.epdFile) as f:
         for line in f:
             m = p.match(line)
@@ -167,6 +166,7 @@ if __name__ == "__main__":
         ("mate", args.mate),
         ("hash", args.hash),
         ("threads", args.threads),
+        ("syzygyPath", args.syzygyPath),
     ]
     msg = (
         args.engine
