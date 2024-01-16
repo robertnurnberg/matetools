@@ -214,7 +214,8 @@ if __name__ == "__main__":
                 bm = m
             else:
                 assert m == bm, f"Fatal error: m should be equal to bm but {m} != {bm}"
-                if len(pv) <= len(oldpv):  # no improvement
+                if len(pv) <= len(oldpv):
+                    print("PV has length {len(pv)} < {len(oldpv)}, so no improvement.")
                     pv = None
             if pv is not None:
                 print("Save PV to file.")
