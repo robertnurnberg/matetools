@@ -36,8 +36,16 @@ By way of example, the following EPD files are provided:
 positions with a sub-optimal value of `bm`.
 * `matetrack.epd`: The successor to `ChestUCI_23102018.epd`, with all illegal positions removed and all known errors corrected. In 26 positions the side to move is going to get mated.
 * `matetrackpv.epd`: The same as `matetrack.epd` but with PVs leading to the checkmate where such a PV is known.
-* `matedtrackpv.epd`: Derived from `matetrackpv.epd` (using the script `advancepvs.py`) by advancing one ply in all positions with `bm>1` that have a PV. In 6467 positions the side to move is going to get mated.
+* `matedtrackpv.epd`: Derived from `matetrackpv.epd` (using the script `advancepvs.py`) by advancing one ply in all positions with `bm>1` that have a PV. In 6469 positions the side to move is going to get mated.
 * `matedtrack.epd`: The same as `matedtrackpv.epd`, but with the PV information removed.
+
+### Automatic creation of new test positions
+
+With the help of the script `advancepvs.py` it is easy to derive new mate
+puzzles from the information stored in `matetrackpv.epd`. For example, the file `matedtrack.epd` has been created with the command
+```shell
+python advancepvs.py --plies 1 --mateType won && sed 's/; PV.*/;/' matedtrackpv.epd > matedtrack.epd
+```
 
 ---
 ## Related repositories
