@@ -3,7 +3,7 @@ import argparse, chess, re
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Merge several .epd files with mates and PVs, which are assumed to be correct (possibly too short). Output is to stdout.",
+        description="Merge possibly better PVs from several .epd files into an existing .epd file. Output is to stdout.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("source", help="The source .epd file.")
@@ -15,8 +15,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
-    d = {}
-    for filename in [args.source] + args.references:
+    d = {}  # the dict will hold the shortest mates, with longest PVs
+    for filename in [args.source] + args.references:  # important to also read in source
         with open(filename) as f:
             for line in f:
                 m = p.match(line)
