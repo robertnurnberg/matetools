@@ -140,9 +140,9 @@ if __name__ == "__main__":
         help="type of positions to find PVs for (WARNING: use all or lost only for reliable engines!)",
     )
     parser.add_argument(
-        "--onlyCompletePVs",
-        action="store_true",
-        help="Try to prove only complete PVs, leading to a checkmate in leaf node.",
+        "--PVstatus",
+        default="short+ok",
+        help="Filter the PVs to be loaded by status: ok, short, long, draw, wrong, all.",
     )
     args = parser.parse_args()
     if (
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
     d = {}  # prepare "cheat sheet" from cdb mate PVs
-    allowed = ["ok"] if args.onlyCompletePVs else ["ok", "short"]
+    allowed = args.PVstatus.split("+")
     with open(args.cdbFile) as f:
         for line in f:
             m = p.match(line)
@@ -168,16 +168,12 @@ if __name__ == "__main__":
             pv, _, _ = pv[:-1].partition(";")  # remove '\n'
             pv = pv.split()
             if (
-                (
-                    args.mateType == "all"
-                    or args.mateType == "won"
-                    and bm > 0
-                    or args.mateType == "lost"
-                    and bm < 0
-                )
-                and pv
-                and pv_status(fen, bm, pv) in allowed
-            ):
+                args.mateType == "all"
+                or args.mateType == "won"
+                and bm > 0
+                or args.mateType == "lost"
+                and bm < 0
+            ) and ("all" in allowed or (pv and pv_status(fen, bm, pv) in allowed)):
                 d[fen] = bm, pv
 
     ana_fens = []
