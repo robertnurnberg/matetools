@@ -60,7 +60,7 @@ class Analyser:
             info = engine.analyse(board, chess.engine.Limit(depth=depth), game=board)
             if "score" in info:
                 score = info["score"].pov(board.turn)
-                print(f"ply {ply:3d}, score {score} (d{depth})")
+                print(f"ply {ply:3d}, score {score} (d{depth})", flush=True)
 
         # finally do the actual analysis, to try to prove the mate
         info = engine.analyse(board, self.limit, game=board)
