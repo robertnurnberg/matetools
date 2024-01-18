@@ -26,9 +26,10 @@ def pv_status(fen, mate, pv):
 class Analyser:
     def __init__(self, args):
         self.engine = args.engine
-        self.limit = chess.engine.Limit(
-            nodes=args.nodes, depth=args.depth, time=args.time, mate=args.mate
-        )
+        self.nodes = args.nodes
+        self.depth = args.depth
+        self.time = args.time
+        self.mate = args.mate
         self.hash = args.hash
         self.threads = args.threads
         self.syzygyPath = args.syzygyPath
@@ -57,13 +58,22 @@ class Analyser:
             board.pop()
             ply -= 1
             depth = min(args.depthMax, max_ply - ply + args.depthMin)
-            info = engine.analyse(board, chess.engine.Limit(depth=depth), game=board)
+            info = engine.analyse(
+                board, chess.engine.Limit(depth=depth, nodes=self.nodes), game=board
+            )
             if "score" in info:
                 score = info["score"].pov(board.turn)
+                depth = info["depth"] if "depth" in info else None
                 print(f"ply {ply:3d}, score {score} (d{depth})", flush=True)
 
         # finally do the actual analysis, to try to prove the mate
-        info = engine.analyse(board, self.limit, game=board)
+        info = engine.analyse(
+            board,
+            chess.engine.Limit(
+                nodes=self.nodes, depth=self.depth, time=self.time, mate=self.mate
+            ),
+            game=board,
+        )
         m, pv = None, None
         if "score" in info:
             score = info["score"].pov(board.turn)
