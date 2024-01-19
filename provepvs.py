@@ -26,15 +26,16 @@ def pv_status(fen, mate, pv):
 class Analyser:
     def __init__(self, args):
         self.engine = args.engine
-        self.nodes = args.nodes
-        self.depth = args.depth
-        self.time = args.time
-        self.mate = args.mate
+        self.limit = chess.engine.Limit(
+            nodes=args.nodes, depth=args.depth, time=args.time, mate=args.mate
+        )
         self.hash = args.hash
         self.threads = args.threads
         self.syzygyPath = args.syzygyPath
         self.depthMin = args.depthMin
         self.depthMax = args.depthMax
+        self.nodesFill = args.nodesFill
+        self.timeFill = args.timeFill
 
     def analyze_fen(self, fen, bm, pv):
         engine = chess.engine.SimpleEngine.popen_uci(self.engine)
@@ -45,9 +46,9 @@ class Analyser:
         if self.syzygyPath is not None:
             engine.configure({"SyzygyPath": self.syzygyPath})
         board = chess.Board(fen)
-        # first clear hash with simple d1 search
+        # first clear hash with a simple d1 search
         engine.analyse(board, chess.engine.Limit(depth=1), game=board)
-        # now walk to last but one node
+        # now walk to PV leaf node
         ply = 0
         for move in pv:
             board.push(chess.Move.from_uci(move))
@@ -55,31 +56,35 @@ class Analyser:
         # now do a backward analysis, filling the hash table
         max_ply = ply
         while board.move_stack:
+            if not (board.is_checkmate() or board.is_stalemate()):
+                depth = min(args.depthMax, max_ply - ply + args.depthMin)
+                info = engine.analyse(
+                    board,
+                    chess.engine.Limit(
+                        depth=depth, nodes=self.nodesFill, time=self.timeFill
+                    ),
+                    game=board,
+                )
+                if "score" in info:
+                    score = info["score"].pov(board.turn)
+                    depth = info["depth"] if "depth" in info else None
+                    nodes = info["nodes"] if "nodes" in info else None
+                    print(
+                        f"ply {ply:3d}, score {score} (d{depth}, nodes {nodes})",
+                        flush=True,
+                    )
             board.pop()
             ply -= 1
-            depth = min(args.depthMax, max_ply - ply + args.depthMin)
-            info = engine.analyse(
-                board, chess.engine.Limit(depth=depth, nodes=self.nodes), game=board
-            )
-            if "score" in info:
-                score = info["score"].pov(board.turn)
-                depth = info["depth"] if "depth" in info else None
-                print(f"ply {ply:3d}, score {score} (d{depth})", flush=True)
 
         # finally do the actual analysis, to try to prove the mate
-        info = engine.analyse(
-            board,
-            chess.engine.Limit(
-                nodes=self.nodes, depth=self.depth, time=self.time, mate=self.mate
-            ),
-            game=board,
-        )
+        info = engine.analyse(board, self.limit, game=board)
         m, pv = None, None
         if "score" in info:
             score = info["score"].pov(board.turn)
             m = score.mate()
             depth = info["depth"] if "depth" in info else None
-            print(f"Final score {score}, mate {m} (d{depth})")
+            nodes = info["nodes"] if "nodes" in info else None
+            print(f"Final score {score}, mate {m} (d{depth}, nodes {nodes})")
         if m is not None and abs(m) <= abs(bm) and "pv" in info:
             pv = [m.uci() for m in info["pv"]]
 
@@ -144,6 +149,16 @@ if __name__ == "__main__":
         help="upper cap for search depth for backwards analysis",
     )
     parser.add_argument(
+        "--nodesFill",
+        type=str,
+        help="nodes limit per position for backwards analysis (hash filling)",
+    )
+    parser.add_argument(
+        "--timeFill",
+        type=float,
+        help="time limit (in seconds) per position for backwards analysis",
+    )
+    parser.add_argument(
         "--mateType",
         choices=["all", "won", "lost"],
         default="won",
@@ -164,6 +179,8 @@ if __name__ == "__main__":
         args.nodes = 10**6
     elif args.nodes is not None:
         args.nodes = eval(args.nodes)
+    if args.nodesFill is not None:
+        args.nodesFill = eval(args.nodesFill)
 
     p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
