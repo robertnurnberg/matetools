@@ -56,7 +56,7 @@ class Analyser:
         # now do a backward analysis, filling the hash table
         max_ply = ply
         while board.move_stack:
-            if not (board.is_checkmate() or board.is_stalemate()):
+            if bool(board.legal_moves):
                 depth = min(args.depthMax, max_ply - ply + args.depthMin)
                 info = engine.analyse(
                     board,
@@ -238,7 +238,9 @@ if __name__ == "__main__":
             else:
                 assert m == bm, f"Fatal error: m should be equal to bm but {m} != {bm}"
                 if len(pv) <= len(oldpv):
-                    print(f"PV has length {len(pv)} <= {len(oldpv)}, so no improvement.")
+                    print(
+                        f"PV has length {len(pv)} <= {len(oldpv)}, so no improvement."
+                    )
                     pv = None
             if pv is not None:
                 print("Save PV to file.")
