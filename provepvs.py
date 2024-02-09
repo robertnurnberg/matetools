@@ -9,12 +9,11 @@ def pv_status(fen, mate, pv):
     if len(pv) > plies_to_checkmate:
         return "long"
     board = chess.Board(fen)
+    losing_side = 1 if mate > 0 else 0
     try:
-        for move in pv[:-2]:
-            board.push(chess.Move.from_uci(move))
-        if board.can_claim_draw():
-            return "draw"
-        for move in pv[-2:]:
+        for ply, move in enumerate(pv):
+            if ply % 2 == losing_side and board.can_claim_draw():
+                return "draw"
             board.push(chess.Move.from_uci(move))
         if board.is_checkmate():
             return "ok"
@@ -114,6 +113,13 @@ if __name__ == "__main__":
         help="output file for newly proven mates with their PVs",
     )
     parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="Increase output with -v, -vv, -vvv etc.",
+    )
+    parser.add_argument(
         "--engine",
         default="./stockfish",
         help="name of the engine binary",
@@ -200,8 +206,12 @@ if __name__ == "__main__":
                 and bm > 0
                 or args.mateType == "lost"
                 and bm < 0
-            ) and ("all" in allowed or (pv and pv_status(fen, bm, pv) in allowed)):
-                d[fen] = bm, pv
+            ):
+                status = pv_status(fen, bm, pv) if pv else "None"
+                if args.verbose:
+                    print(f'For "{line[:-1]}" got PV status {status}.')
+                if "all" in allowed or status in allowed:
+                    d[fen] = bm, pv
 
     ana_fens = []
     with open(args.epdFile) as f:
