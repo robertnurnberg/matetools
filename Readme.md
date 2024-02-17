@@ -20,12 +20,14 @@ To this end the following scripts are provided:
 
 * `addpvs.py`: adds (missing) PVs to a given EPD file using a local engine (the
   script uses concurrency, results are available once _all_ positions have been
-processed)
+  processed)
 * `advancepvs.py`: advances a number of plies in the given PVs to create new puzzles
+* `deducepvs.py`: uses proven PVs, and the associated PVs for all
+  the positions along the mating lines, to find possibly missing PVs
 * `mergepvs.py`: merges several EPD file containing PVs into one
 * `provepvs.py`: uses conjectured PVs to guide a local engine to find mates and
   prove PVs (the scripts works sequentially, proven PVs are available
-immediately)
+  immediately)
 * `sortbymates.py`: sorts the positions in an EPD file
 
 By way of example, the following EPD files are provided:
