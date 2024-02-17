@@ -51,8 +51,9 @@ class Analyser:
         ply, pvmate = 0, bm
         for move in pv:
             board.push(chess.Move.from_uci(move))
-            pvmate = -pvmate + (1 if pvmate > 0 else 0)
             ply += 1
+            pvmate = -pvmate + (1 if pvmate > 0 else 0)
+
         # now do a backward analysis, filling the hash table
         max_ply = ply
         while board.move_stack:
@@ -77,11 +78,11 @@ class Analyser:
                         m = score.mate()
                         if m is not None and m > 0 and m <= pvmate and "pv" in info:
                             print(f"Found terminal mate {m}, ending search early.")
-                            return bm + m - pvmate, pv + [m.uci() for m in info["pv"]]
-                        pvmate = -pvmate + (1 if pvmate < 0 else 0)
+                            return bm + m - pvmate, pv[:ply] + [m.uci() for m in info["pv"]]
 
             board.pop()
             ply -= 1
+            pvmate = -pvmate + (1 if pvmate <= 0 else 0)
 
         # finally do the actual analysis, to try to prove the mate
         info = self.engine.analyse(board, self.limit, game=board)
