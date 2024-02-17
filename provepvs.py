@@ -76,9 +76,12 @@ class Analyser:
                     )
                     if self.trust:
                         m = score.mate()
+                        # we play this safe and only use positive mate scores
                         if m is not None and m > 0 and m <= pvmate and "pv" in info:
                             print(f"Found terminal mate {m}, ending search early.")
-                            return bm + m - pvmate, pv[:ply] + [m.uci() for m in info["pv"]]
+                            return bm + m - pvmate, pv[:ply] + [
+                                m.uci() for m in info["pv"]
+                            ]
 
             board.pop()
             ply -= 1
