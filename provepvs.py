@@ -78,6 +78,7 @@ class Analyser:
                         if m is not None and m > 0 and m <= pvmate and "pv" in info:
                             print(f"Found terminal mate {m}, ending search early.")
                             return bm + m - pvmate, pv + [m.uci() for m in info["pv"]]
+                        pvmate = -pvmate + (1 if pvmate < 0 else 0)
 
             board.pop()
             ply -= 1
