@@ -38,6 +38,7 @@ class Analyser:
         self.depthMax = args.depthMax
         self.nodesFill = args.nodesFill
         self.timeFill = args.timeFill
+        self.trust = args.trust
 
     def quit(self):
         self.engine.quit()
@@ -47,9 +48,10 @@ class Analyser:
         # first clear hash with a simple d1 search
         self.engine.analyse(board, chess.engine.Limit(depth=1), game=board)
         # now walk to PV leaf node
-        ply = 0
+        ply, pvmate = 0, bm
         for move in pv:
             board.push(chess.Move.from_uci(move))
+            pvmate = -pvmate + (1 if pvmate > 0 else 0)
             ply += 1
         # now do a backward analysis, filling the hash table
         max_ply = ply
@@ -71,6 +73,12 @@ class Analyser:
                         f"ply {ply:3d}, score {score} (d{depth}, nodes {nodes})",
                         flush=True,
                     )
+                    if self.trust:
+                        m = score.mate()
+                        if m is not None and m > 0 and m <= pvmate and "pv" in info:
+                            print(f"Found terminal mate {m}, ending search early.")
+                            return bm + m - pvmate, pv + [m.uci() for m in info["pv"]]
+
             board.pop()
             ply -= 1
 
