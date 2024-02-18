@@ -24,40 +24,42 @@ def pv_status(fen, mate, pv):
 
 class Analyser:
     def __init__(self, args):
-        self.engine = args.engine
+        self.engine = chess.engine.SimpleEngine.popen_uci(args.engine)
+        if args.hash is not None:
+            self.engine.configure({"Hash": args.hash})
+        if args.threads is not None:
+            self.engine.configure({"Threads": args.threads})
+        if args.syzygyPath is not None:
+            self.engine.configure({"SyzygyPath": args.syzygyPath})
         self.limit = chess.engine.Limit(
             nodes=args.nodes, depth=args.depth, time=args.time, mate=args.mate
         )
-        self.hash = args.hash
-        self.threads = args.threads
-        self.syzygyPath = args.syzygyPath
         self.depthMin = args.depthMin
         self.depthMax = args.depthMax
         self.nodesFill = args.nodesFill
         self.timeFill = args.timeFill
+        self.trust = args.trust
+
+    def quit(self):
+        self.engine.quit()
 
     def analyze_fen(self, fen, bm, pv):
-        engine = chess.engine.SimpleEngine.popen_uci(self.engine)
-        if self.hash is not None:
-            engine.configure({"Hash": self.hash})
-        if self.threads is not None:
-            engine.configure({"Threads": self.threads})
-        if self.syzygyPath is not None:
-            engine.configure({"SyzygyPath": self.syzygyPath})
         board = chess.Board(fen)
         # first clear hash with a simple d1 search
-        engine.analyse(board, chess.engine.Limit(depth=1), game=board)
+        self.engine.analyse(board, chess.engine.Limit(depth=1), game=board)
         # now walk to PV leaf node
-        ply = 0
+        ply, pvmate = 0, bm
         for move in pv:
             board.push(chess.Move.from_uci(move))
             ply += 1
+            pvmate = -pvmate + (1 if pvmate > 0 else 0)
+
         # now do a backward analysis, filling the hash table
         max_ply = ply
         while board.move_stack:
             if bool(board.legal_moves):
                 depth = min(args.depthMax, max_ply - ply + args.depthMin)
-                info = engine.analyse(
+                info = self.engine.analyse(
                     board,
                     chess.engine.Limit(
                         depth=depth, nodes=self.nodesFill, time=self.timeFill
@@ -72,11 +74,25 @@ class Analyser:
                         f"ply {ply:3d}, score {score} (d{depth}, nodes {nodes})",
                         flush=True,
                     )
+                    if self.trust:
+                        m = score.mate()
+                        # we play this safe and only use positive mate scores
+                        if m is not None and m > 0 and m <= pvmate and "pv" in info:
+                            newbm = bm + m - pvmate
+                            newpv = pv[:ply] + [m.uci() for m in info["pv"]]
+                            status = pv_status(fen, newbm, newpv)
+                            print(
+                                f"Found terminal mate {m}, combined PV has status {status}."
+                            )
+                            assert status in ["ok", "short"], f"Unexpected PV status."
+                            return newbm, newpv
+
             board.pop()
             ply -= 1
+            pvmate = -pvmate + (1 if pvmate <= 0 else 0)
 
         # finally do the actual analysis, to try to prove the mate
-        info = engine.analyse(board, self.limit, game=board)
+        info = self.engine.analyse(board, self.limit, game=board)
         m, pv = None, None
         if "score" in info:
             score = info["score"].pov(board.turn)
@@ -86,8 +102,6 @@ class Analyser:
             print(f"Final score {score}, mate {m} (d{depth}, nodes {nodes})")
         if m is not None and abs(m) <= abs(bm) and "pv" in info:
             pv = [m.uci() for m in info["pv"]]
-
-        engine.quit()
 
         return m, pv
 
@@ -106,6 +120,11 @@ if __name__ == "__main__":
         "--cdbFile",
         default="../cdbmatetrack/matetrack_cdbpv.epd",
         help="file with conjectured mate PVs",
+    )
+    parser.add_argument(
+        "--trust",
+        action="store_true",
+        help="take the conjectured PVs as proven (use with care!)",
     )
     parser.add_argument(
         "--outFile",
@@ -232,6 +251,7 @@ if __name__ == "__main__":
 
     ana = Analyser(args)
 
+    count = 0
     with open(args.outFile, "w") as f:
         for i, (fen, bm, pv, oldpv) in enumerate(ana_fens):
             print(f'Analysing {i+1}/{total_count} "{fen}" with bm #{bm}...', flush=True)
@@ -252,8 +272,14 @@ if __name__ == "__main__":
                         f"PV has length {len(pv)} <= {len(oldpv)}, so no improvement."
                     )
                     pv = None
+                else:
+                    print(f"PV has length {len(pv)} > {len(oldpv)}.")
             if pv is not None:
                 print("Save PV to file.")
                 f.write(f"{fen} bm #{bm}; PV: {' '.join(pv)};\n")
                 f.close()
                 f = open(args.outFile, "a")
+                count += 1
+
+    ana.quit()
+    print(f"All done. Saved {count} PVs to {args.outFile}.")
