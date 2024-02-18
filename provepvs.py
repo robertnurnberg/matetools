@@ -78,10 +78,14 @@ class Analyser:
                         m = score.mate()
                         # we play this safe and only use positive mate scores
                         if m is not None and m > 0 and m <= pvmate and "pv" in info:
-                            print(f"Found terminal mate {m}, ending search early.")
-                            return bm + m - pvmate, pv[:ply] + [
-                                m.uci() for m in info["pv"]
-                            ]
+                            newbm = bm + m - pvmate
+                            newpv = pv[:ply] + [m.uci() for m in info["pv"]]
+                            status = pv_status(fen, newbm, newpv)
+                            print(
+                                f"Found terminal mate {m}, combined PV has status {status}."
+                            )
+                            assert status in ["ok", "short"], f"Unexpected PV status."
+                            return newbm, newpv
 
             board.pop()
             ply -= 1
@@ -268,6 +272,8 @@ if __name__ == "__main__":
                         f"PV has length {len(pv)} <= {len(oldpv)}, so no improvement."
                     )
                     pv = None
+                else:
+                    print(f"PV has length {len(pv)} > {len(oldpv)}.")
             if pv is not None:
                 print("Save PV to file.")
                 f.write(f"{fen} bm #{bm}; PV: {' '.join(pv)};\n")
