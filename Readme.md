@@ -50,6 +50,10 @@ puzzles from the information stored in `matetrackpv.epd`. For example, the file 
 ```shell
 python advancepvs.py --plies 1 --mateType won && sed 's/; PV.*/;/' matedtrackpv.epd > matedtrack.epd
 ```
+Similarly, several mate-in-2 positions can be created with the command
+```shell
+python advancepvs.py --targetMate 2 --mateType all && grep 'bm #2;' matedtrackpv.epd > mate-in-2.epd
+```
 
 ---
 ## Related repositories
