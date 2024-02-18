@@ -28,6 +28,8 @@ To this end the following scripts are provided:
 * `provepvs.py`: uses conjectured PVs to guide a local engine to find mates and
   prove PVs (the scripts works sequentially, proven PVs are available
   immediately)
+* `shortenpvs.py`: removes moves from the end of existing PVs (only used in
+  development, for debugging other scripts)
 * `sortbymates.py`: sorts the positions in an EPD file
 
 By way of example, the following EPD files are provided:
