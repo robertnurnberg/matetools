@@ -83,6 +83,6 @@ if __name__ == "__main__":
                 f.write(line)
 
     if args.targetMate:
-        print(f"Number of mate-in-{args.targetMate} positions created: ", count)
+        print(f"Number of #{args.targetMate} positions created: ", count)
     else:
         print(f"Positions in which we advanced {plies} plies: ", count)
