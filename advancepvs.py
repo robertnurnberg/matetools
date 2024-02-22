@@ -25,12 +25,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--targetMate",
         type=int,
-        help="in each position advance enough plies to leave a mate-in-TARGETMATE",
+        help="in each position advance enough plies to leave a mate-in-TARGETMATE (overrides --plies)",
     )
     parser.add_argument(
         "--mateType",
         choices=["all", "won", "lost"],
-        default="won",
+        default="all",
         help="type of positions to advance from",
     )
     args = parser.parse_args()
