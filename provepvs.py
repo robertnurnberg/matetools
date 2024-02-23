@@ -59,6 +59,9 @@ class Analyser:
         while board.move_stack:
             if bool(board.legal_moves):
                 depth = min(args.depthMax, max_ply - ply + args.depthMin)
+                print(
+                    f'Analysing "{board.epd()}" (after move {board.peek().uci()}) to d{depth}.'
+                )
                 info = self.engine.analyse(
                     board,
                     chess.engine.Limit(
@@ -262,18 +265,23 @@ if __name__ == "__main__":
                 continue
 
             print(f"Found mate #{m}!")
+            status = pv_status(fen, m, pv)
             if abs(m) < abs(bm):
-                print(f"Found better mate #{m} for FEN {fen} bm #{bm}")
+                print(
+                    f"Found better mate #{m} for FEN {fen} bm #{bm}. PV has status {status}."
+                )
                 bm = m
             else:
                 assert m == bm, f"Fatal error: m should be equal to bm but {m} != {bm}"
                 if len(pv) <= len(oldpv):
                     print(
-                        f"PV has length {len(pv)} <= {len(oldpv)}, so no improvement."
+                        f"PV has status {status} and length {len(pv)} <= {len(oldpv)}, so no improvement."
                     )
                     pv = None
                 else:
-                    print(f"PV has length {len(pv)} > {len(oldpv)}.")
+                    print(
+                        f"PV has status {status} and length {len(pv)} > {len(oldpv)}."
+                    )
             if pv is not None:
                 print("Save PV to file.")
                 f.write(f"{fen} bm #{bm}; PV: {' '.join(pv)};\n")
