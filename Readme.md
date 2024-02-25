@@ -40,8 +40,9 @@ By way of example, the following EPD files are provided:
 positions with a sub-optimal value of `bm`.
 * `matetrack.epd`: The successor to `ChestUCI_23102018.epd`, with all illegal positions removed and all known errors corrected. In 26 positions the side to move is going to get mated.
 * `matetrackpv.epd`: The same as `matetrack.epd` but with PVs leading to the checkmate where such a PV is known.
-* `matedtrackpv.epd`: Derived from `matetrackpv.epd` (using the script `advancepvs.py`) by advancing one ply in all positions with `bm>1` that have a PV. In 6507 positions the side to move is going to get mated.
+* `matedtrackpv.epd`: Derived from `matetrackpv.epd` (using the script `advancepvs.py`) by advancing one ply in all positions with `bm>1` that have a PV. In 6508 positions the side to move is going to get mated.
 * `matedtrack.epd`: The same as `matedtrackpv.epd`, but with the PV information removed.
+* `mate-in-2.epd`: A collection of 6508 `bm #2` puzzles derived from `matetrackpv.epd`.
 
 ### Automatic creation of new test positions
 
@@ -50,9 +51,19 @@ puzzles from the information stored in `matetrackpv.epd`. For example, the file 
 ```shell
 python advancepvs.py --plies 1 --mateType won && sed 's/; PV.*/;/' matedtrackpv.epd > matedtrack.epd
 ```
-Similarly, several mate-in-2 positions can be created with the command
+Similarly, the file `mate-in-2.epd` was created with
 ```shell
 python advancepvs.py --targetMate 2 && grep 'bm #2;' matedtrackpv.epd > mate-in-2.epd
+```
+
+### Trivia
+
+A collection of games from the [Lichess masters db](https://lichess.org/analysis) that feature positions in `matetrack.epd` can be found in 
+[`matetrack_masters.pgn`](matetrack_masters.pgn). 
+The file contains 32 white wins, 10 black wins and (surprisingly) 1 draw. 
+The collection was created with the command
+```shell
+python get_lichess_pgns.py matetrack.epd --db master --pgnFile matetrack_masters.pgn
 ```
 
 ---
