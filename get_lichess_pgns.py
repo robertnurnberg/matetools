@@ -64,7 +64,7 @@ print(f"Total number of positions: {total}. Looking for games in {args.db} db.")
 
 dbs = args.db.split("+")
 i = count = 0
-with open(args.pgnFile, "w") as f:
+with open(args.pgnFile, "w", encoding='utf-8') as f:
     for fen in fens:
         if args.verbose >= 2:
             print(f"FEN = {fen}")
