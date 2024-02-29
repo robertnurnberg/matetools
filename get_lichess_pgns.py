@@ -60,11 +60,14 @@ with open(args.filename) as f:
             fens.add(fen)
 
 total = len(fens)
-print(f"Total number of positions: {total}. Looking for games in {args.db} db.")
+print(
+    f"Total number of positions: {total}. Looking for games in {args.db} db.",
+    flush=True,
+)
 
 dbs = args.db.split("+")
 i = count = 0
-with open(args.pgnFile, "w", encoding='utf-8') as f:
+with open(args.pgnFile, "w", encoding="utf-8") as f:
     for fen in fens:
         if args.verbose >= 2:
             print(f"FEN = {fen}")
@@ -78,6 +81,6 @@ with open(args.pgnFile, "w", encoding='utf-8') as f:
             count += 1
         if args.verbose:
             i += 1
-            print(f"{i}/{total} FENs done. Found {count} games so far.")
+            print(f"{i}/{total} FENs done. Found {count} games so far.", flush=True)
 
 print(f"Wrote {count} games that were found to {args.pgnFile}.")
