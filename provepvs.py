@@ -39,6 +39,7 @@ class Analyser:
         self.nodesFill = args.nodesFill
         self.timeFill = args.timeFill
         self.mateFill = args.mateFill
+        self.completePV = args.completePV
         self.trust = args.trust
 
     def quit(self):
@@ -61,15 +62,13 @@ class Analyser:
             if bool(board.legal_moves):
                 if self.mateFill:
                     limit = chess.engine.Limit(mate=abs(pvmate))
-                    msg = f"mate {pvmate}"
                 else:
                     depth = min(args.depthMax, max_ply - ply + args.depthMin)
                     limit = chess.engine.Limit(
                         depth=depth, nodes=self.nodesFill, time=self.timeFill
                     )
-                    msg = f"d{depth}"
                 print(
-                    f'Analysing "{board.epd()}" (after move {board.peek().uci()}) to {msg}.',
+                    f'Analysing "{board.epd()}" (after move {board.peek().uci()}) to {limit}.',
                     flush=True,
                 )
                 info = self.engine.analyse(board, limit, game=board)
@@ -101,18 +100,28 @@ class Analyser:
 
         # finally do the actual analysis, to try to prove the mate
         limit = chess.engine.Limit(mate=abs(bm)) if self.mateFill else self.limit
-        info = self.engine.analyse(board, limit, game=board)
-        m, pv = None, None
-        if "score" in info:
-            score = info["score"].pov(board.turn)
-            m = score.mate()
-            depth = info["depth"] if "depth" in info else None
-            nodes = info["nodes"] if "nodes" in info else None
-            print(f"Final score {score}, mate {m} (d{depth}, nodes {nodes})")
-        if m is not None and abs(m) <= abs(bm) and "pv" in info:
-            pv = [m.uci() for m in info["pv"]]
-
-        return m, pv
+        while True:
+            print(
+                f'Analysing "{board.epd()}" to {limit}.',
+                flush=True,
+            )
+            info = self.engine.analyse(board, limit, game=board)
+            m, pv = None, None
+            if "score" in info:
+                score = info["score"].pov(board.turn)
+                m = score.mate()
+                depth = info["depth"] if "depth" in info else None
+                nodes = info["nodes"] if "nodes" in info else None
+                localpv = [m.uci() for m in info["pv"]] if "pv" in info else []
+                print(
+                    f"Final score {score}, mate {m} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
+                )
+            if m is not None and abs(m) <= abs(bm) and "pv" in info:
+                pv = [m.uci() for m in info["pv"]]
+            if self.completePV and (pv is None or pv_status(fen, bm, pv) != "ok"):
+                limit = chess.engine.Limit(depth=depth + 1)
+            else:
+                return m, pv
 
 
 if __name__ == "__main__":
@@ -198,6 +207,11 @@ if __name__ == "__main__":
         help="use mate limit for backwards analysis (overrides all other limits, may lead to infinite analysis for incorrect PVs)",
     )
     parser.add_argument(
+        "--completePV",
+        action="store_true",
+        help="repeat analysis for the final board until the PV is complete (increasing depth)",
+    )
+    parser.add_argument(
         "--mateType",
         choices=["all", "won", "lost"],
         default="won",
@@ -268,7 +282,7 @@ if __name__ == "__main__":
     count = 0
     with open(args.outFile, "w") as f:
         for i, (fen, bm, pv, oldpv) in enumerate(ana_fens):
-            print(f'Analysing {i+1}/{total_count} "{fen}" with bm #{bm}...', flush=True)
+            print(f'{i+1}/{total_count} "{fen}" with bm #{bm}...', flush=True)
 
             m, pv = ana.analyze_fen(fen, bm, pv)
 
