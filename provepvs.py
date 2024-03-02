@@ -38,6 +38,7 @@ class Analyser:
         self.depthMax = args.depthMax
         self.nodesFill = args.nodesFill
         self.timeFill = args.timeFill
+        self.mateFill = args.mateFill
         self.trust = args.trust
 
     def quit(self):
@@ -58,23 +59,27 @@ class Analyser:
         max_ply = ply
         while board.move_stack:
             if bool(board.legal_moves):
-                depth = min(args.depthMax, max_ply - ply + args.depthMin)
-                print(
-                    f'Analysing "{board.epd()}" (after move {board.peek().uci()}) to d{depth}.'
-                )
-                info = self.engine.analyse(
-                    board,
-                    chess.engine.Limit(
+                if self.mateFill:
+                    limit = chess.engine.Limit(mate=abs(pvmate))
+                    msg = f"mate {pvmate}"
+                else:
+                    depth = min(args.depthMax, max_ply - ply + args.depthMin)
+                    limit = chess.engine.Limit(
                         depth=depth, nodes=self.nodesFill, time=self.timeFill
-                    ),
-                    game=board,
+                    )
+                    msg = f"d{depth}"
+                print(
+                    f'Analysing "{board.epd()}" (after move {board.peek().uci()}) to {msg}.',
+                    flush=True,
                 )
+                info = self.engine.analyse(board, limit, game=board)
                 if "score" in info:
                     score = info["score"].pov(board.turn)
                     depth = info["depth"] if "depth" in info else None
                     nodes = info["nodes"] if "nodes" in info else None
+                    pv = [m.uci() for m in info["pv"]] if "pv" in info else []
                     print(
-                        f"ply {ply:3d}, score {score} (d{depth}, nodes {nodes})",
+                        f"ply {ply:3d}, score {score} (d{depth}, nodes {nodes}) PV: {' '.join(pv)}",
                         flush=True,
                     )
                     if self.trust:
@@ -185,6 +190,11 @@ if __name__ == "__main__":
         "--timeFill",
         type=float,
         help="time limit (in seconds) per position for backwards analysis",
+    )
+    parser.add_argument(
+        "--mateFill",
+        action="store_true",
+        help="use mate limit for backwards analysis (overrides all other limits, may lead to infinite analysis for incorrect PVs)",
     )
     parser.add_argument(
         "--mateType",
