@@ -100,7 +100,8 @@ class Analyser:
             pvmate = -pvmate + (1 if pvmate <= 0 else 0)
 
         # finally do the actual analysis, to try to prove the mate
-        info = self.engine.analyse(board, self.limit, game=board)
+        limit = chess.engine.Limit(mate=abs(bm)) if self.mateFill else self.limit
+        info = self.engine.analyse(board, limit, game=board)
         m, pv = None, None
         if "score" in info:
             score = info["score"].pov(board.turn)
