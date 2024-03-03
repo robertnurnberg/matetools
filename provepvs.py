@@ -81,8 +81,10 @@ class Analyser:
                         f"ply {ply:3d}, score {score} (d{depth}, nodes {nodes}) PV: {' '.join(pv)}",
                         flush=True,
                     )
+                    m = score.mate()
+                    if self.mateFill and (m is None or abs(m) > abs(pvmate)):
+                        print(f"error for 'go mate {abs(pvmate)}'.", flush=True)
                     if self.trust:
-                        m = score.mate()
                         # we play this safe and only use positive mate scores
                         if m is not None and m > 0 and m <= pvmate and "pv" in info:
                             newbm = bm + m - pvmate
@@ -116,6 +118,12 @@ class Analyser:
                 print(
                     f"Final score {score}, mate {m} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
                 )
+                if (
+                    self.mateFill
+                    and limit == chess.engine.Limit(mate=abs(bm))
+                    and (m is None or abs(m) > abs(bm))
+                ):
+                    print(f"error for 'go mate {abs(bm)}'.", flush=True)
             if m is not None and abs(m) <= abs(bm) and "pv" in info:
                 pv = [m.uci() for m in info["pv"]]
             if self.completePV and (pv is None or pv_status(fen, bm, pv) != "ok"):
@@ -175,7 +183,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--threads",
         type=int,
-        default=max(1, os.cpu_count() * 3 // 4),
+        default=1,
         help="number of threads per position",
     )
     parser.add_argument("--syzygyPath", help="path to syzygy EGTBs")
