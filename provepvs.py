@@ -40,6 +40,7 @@ class Analyser:
         self.timeFill = args.timeFill
         self.mateFill = args.mateFill
         self.completePV = args.completePV
+        self.longestPV = args.longestPV
         self.trust = args.trust
 
     def quit(self):
@@ -102,6 +103,8 @@ class Analyser:
 
         # finally do the actual analysis, to try to prove the mate
         limit = chess.engine.Limit(mate=abs(bm)) if self.mateFill else self.limit
+
+        bestm, bestpv = None, None
         while True:
             print(
                 f'Analysing "{board.epd()}" to {limit}.',
@@ -126,10 +129,19 @@ class Analyser:
                     print(f"error for 'go mate {abs(bm)}'.", flush=True)
             if m is not None and abs(m) <= abs(bm) and "pv" in info:
                 pv = [m.uci() for m in info["pv"]]
-            if self.completePV and (pv is None or pv_status(fen, bm, pv) != "ok"):
-                limit = chess.engine.Limit(depth=depth + 1)
+            if self.longestPV:
+                if pv is None:  # if no mate is found anymore, return best found
+                    return bestm, bestpv
+                if bestpv is None or abs(m) < abs(bestm) or len(pv) > len(bestpv):
+                    bestm, bestpv = m, pv
+            elif self.completePV:
+                if pv is not None and pv_status(fen, bm, pv) == "ok":
+                    break
             else:
-                return m, pv
+                break
+            limit = chess.engine.Limit(depth=depth + 1)
+
+        return m, pv
 
 
 if __name__ == "__main__":
@@ -215,6 +227,11 @@ if __name__ == "__main__":
         help="use mate limit for backwards analysis (overrides all other limits, may lead to infinite analysis for incorrect PVs)",
     )
     parser.add_argument(
+        "--longestPV",
+        action="store_true",
+        help="if --mateFill, then on final board try to get longest PV possible",
+    )
+    parser.add_argument(
         "--completePV",
         action="store_true",
         help="repeat analysis for the final board until the PV is complete (increasing depth)",
@@ -242,6 +259,8 @@ if __name__ == "__main__":
         args.nodes = eval(args.nodes)
     if args.nodesFill is not None:
         args.nodesFill = eval(args.nodesFill)
+    assert not (args.completePVs and args.longestPV), "Choose one of the two."
+    assert not args.longestPV or args.mateFill, "Need --mateFill."
 
     p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
