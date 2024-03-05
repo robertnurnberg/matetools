@@ -259,7 +259,7 @@ if __name__ == "__main__":
         args.nodes = eval(args.nodes)
     if args.nodesFill is not None:
         args.nodesFill = eval(args.nodesFill)
-    assert not (args.completePVs and args.longestPV), "Choose one of the two."
+    assert not (args.completePV and args.longestPV), "Choose one of the two."
     assert not args.longestPV or args.mateFill, "Need --mateFill."
 
     p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
