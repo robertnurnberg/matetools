@@ -77,9 +77,9 @@ class Analyser:
                     score = info["score"].pov(board.turn)
                     depth = info["depth"] if "depth" in info else None
                     nodes = info["nodes"] if "nodes" in info else None
-                    pv = [m.uci() for m in info["pv"]] if "pv" in info else []
+                    fillpv = [m.uci() for m in info["pv"]] if "pv" in info else []
                     print(
-                        f"ply {ply:3d}, score {score} (d{depth}, nodes {nodes}) PV: {' '.join(pv)}",
+                        f"ply {ply:3d}, score {score} (d{depth}, nodes {nodes}) PV: {' '.join(fillpv)}",
                         flush=True,
                     )
                     m = score.mate()
