@@ -94,7 +94,14 @@ class Analyser:
                             print(
                                 f"Found terminal mate {m}, combined PV has status {status}."
                             )
-                            assert status in ["ok", "short"], f"Unexpected PV status."
+                            assert status in [
+                                "ok",
+                                "short",
+                            ], f"Unexpected PV status {status}."
+                            if abs(newbm) < abs(bm):
+                                print(
+                                    "Warning: the shorter mate cannot be trusted (there may be better defenses)."
+                                )
                             return newbm, newpv
 
             board.pop()
