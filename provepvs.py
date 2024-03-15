@@ -61,7 +61,10 @@ class Analyser:
         max_ply = ply
         while board.move_stack:
             if bool(board.legal_moves):
-                if self.mateFill:
+                do_mate_fill = self.mateFill == "all" or (
+                    self.mateFill == "won" and pvmate > 0
+                )
+                if do_mate_fill:
                     limit = chess.engine.Limit(mate=abs(pvmate))
                 else:
                     depth = min(args.depthMax, max_ply - ply + args.depthMin)
@@ -83,7 +86,7 @@ class Analyser:
                         flush=True,
                     )
                     m = score.mate()
-                    if self.mateFill and (m is None or abs(m) > abs(pvmate)):
+                    if do_mate_fill and (m is None or abs(m) > abs(pvmate)):
                         print(f"error for 'go mate {abs(pvmate)}'.", flush=True)
                     if self.trust:
                         # we play this safe and only use positive mate scores
@@ -109,7 +112,8 @@ class Analyser:
             pvmate = -pvmate + (1 if pvmate <= 0 else 0)
 
         # finally do the actual analysis, to try to prove the mate
-        limit = chess.engine.Limit(mate=abs(bm)) if self.mateFill else self.limit
+        do_mate_fill = self.mateFill == "all" or (self.mateFill == "won" and pvmate > 0)
+        limit = chess.engine.Limit(mate=abs(bm)) if do_mate_fill else self.limit
 
         bestm, bestpv = None, None
         while True:
@@ -129,7 +133,7 @@ class Analyser:
                     f"Final score {score}, mate {m} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
                 )
                 if (
-                    self.mateFill
+                    do_mate_fill
                     and limit == chess.engine.Limit(mate=abs(bm))
                     and (m is None or abs(m) > abs(bm))
                 ):
@@ -230,13 +234,14 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--mateFill",
-        action="store_true",
+        choices=["all", "won", "None"],
+        default="None",
         help="use mate limit for backwards analysis (overrides all other limits, may lead to infinite analysis for incorrect PVs)",
     )
     parser.add_argument(
         "--longestPV",
         action="store_true",
-        help="if --mateFill, then on final board try to get longest PV possible",
+        help="if --mateFill != None, then on final board try to get longest PV possible",
     )
     parser.add_argument(
         "--completePV",
@@ -267,7 +272,7 @@ if __name__ == "__main__":
     if args.nodesFill is not None:
         args.nodesFill = eval(args.nodesFill)
     assert not (args.completePV and args.longestPV), "Choose one of the two."
-    assert not args.longestPV or args.mateFill, "Need --mateFill."
+    assert not args.longestPV or args.mateFill != "None", "Need --mateFill."
 
     p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
