@@ -1,4 +1,4 @@
-import argparse, chess, time
+import argparse, chess, collections, time
 
 VALUE_MATE = 1000  # larger values mean more iterations when no mate can be found
 
@@ -64,9 +64,10 @@ class MateTB:
         """fen2index maps the unique FENs from the game tree to integer indices"""
         tic = time.time()
         print("Create the allowed part of the game tree ...")
-        count, self.fen2index, stack = 0, {}, [self.root_pos]
-        while stack:
-            fen = stack.pop()
+        count, self.fen2index = 0, {}
+        queue = collections.deque([self.root_pos])
+        while queue:
+            fen = queue.popleft()
             if fen in self.fen2index:
                 continue
             self.fen2index[fen] = count
@@ -83,7 +84,7 @@ class MateTB:
                     continue
                 if self.allowed_move(board, move):
                     board.push(move)
-                    stack.append(board.epd())
+                    queue.append(board.epd())
                     board.pop()
         print(f"Found {len(self.fen2index)} positions in {time.time()-tic:.2f}s")
 
@@ -120,7 +121,7 @@ class MateTB:
         iteration, changed = 0, 1
         while changed:
             changed = 0
-            for i in range(len(self.tb)):
+            for i in reversed(range(len(self.tb))):
                 best_score = None
                 for child in self.tb[i][1]:
                     score = self.tb[child][0]
