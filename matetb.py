@@ -29,6 +29,7 @@ class MateTB:
         if args.excludeTo:
             for square in args.excludeTo.split():
                 self.BBexcludeTo |= chess.BB_SQUARES[chess.parse_square(square)]
+        self.excludeCaptures = args.excludeCaptures
         self.excludeToAttacked = args.excludeToAttacked
         self.excludeToCapturable = args.excludeToCapturable
         self.verbose = args.verbose
@@ -45,6 +46,8 @@ class MateTB:
         if self.BBexcludeFrom & (1 << move.from_square):
             return False
         if self.BBexcludeTo & (1 << move.to_square):
+            return False
+        if self.excludeCaptures and board.is_capture(move):
             return False
         if self.excludeToAttacked and board.is_attacked_by(
             not board.turn, move.to_square
@@ -211,6 +214,7 @@ def fill_exclude_options(args):
         args.firstMove
         or args.excludeFrom
         or args.excludeTo
+        or args.excludeCaptures
         or args.excludeToAttacked
         or args.excludeToCapturable
     ):
@@ -227,8 +231,11 @@ def fill_exclude_options(args):
         args.firstMove = "c2d1"
         args.excludeFrom = "d1"
         args.excludeToAttacked = True
+    elif epd == "8/1p6/8/3p3k/3p4/6Q1/pp1p4/rrbK4 w - -":
+        args.excludeFrom = "d1"
+        args.excludeCaptures = True
+        args.excludeToAttacked = True
     elif epd in [
-        "8/1p6/8/3p3k/3p4/6Q1/pp1p4/rrbK4 w - -",
         "8/1p6/4k3/8/3p1Q2/3p4/pp1p4/rrbK4 w - -",
         "8/6pp/5p2/k7/3p4/1Q2p3/3prpp1/3Kbqrb w - -",
     ]:
@@ -259,6 +266,11 @@ if __name__ == "__main__":
         help="Space separated square names that pieces should never move to.",
     )
     parser.add_argument(
+        "--excludeCaptures",
+        action="store_true",
+        help="Never capture.",
+    )
+    parser.add_argument(
         "--excludeToAttacked",
         action="store_true",
         help="Never move to attacked squares (including from pinned pieces, but ignoring en passant).",
@@ -282,6 +294,7 @@ if __name__ == "__main__":
         ("firstMove", args.firstMove),
         ("excludeFrom", args.excludeFrom),
         ("excludeTo", args.excludeTo),
+        ("excludeCaptures", args.excludeCaptures),
         ("excludeToAttacked", args.excludeToAttacked),
         ("excludeToCapturable", args.excludeToCapturable),
     ]
