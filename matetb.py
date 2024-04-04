@@ -142,9 +142,11 @@ class MateTB:
         if (
             not bool(board.legal_moves)
             or board.is_insufficient_material()
-            or board.can_claim_draw()
+            or board.can_claim_threefold_repetition()
         ):
             return []
+        if not board.turn == self.mating_side and board.can_claim_fifty_moves():
+            return ["; draw by 50mr"]
         moves = []
         for move in board.legal_moves:
             board.push(move)
@@ -191,11 +193,13 @@ class MateTB:
             score_str = f"cp {score}"
             if score:
                 score_str += f" mate {score2mate(score)}"
-            pv = " ".join(pv)
-            print(f"multipv {count+1} score {score_str} pv {pv}")
+            pvstr = " ".join(pv)
+            print(f"multipv {count+1} score {score_str} pv {pvstr}")
             if self.verbose >= 2:
+                if pv[-1] == "; draw by 50mr":
+                    pvstr = " ".join(pv[:-1])
                 print(
-                    f"https://chessdb.cn/queryc_en/?{self.root_pos} moves {pv}\n".replace(
+                    f"https://chessdb.cn/queryc_en/?{self.root_pos} moves {pvstr}\n".replace(
                         " ", "_"
                     )
                 )
