@@ -1,4 +1,4 @@
-import argparse, chess, collections, time
+import argparse, chess, collections, concurrent.futures, os, time
 
 VALUE_MATE = 1000  # larger values mean more iterations when no mate can be found
 
@@ -32,6 +32,7 @@ class MateTB:
         self.excludeCaptures = args.excludeCaptures
         self.excludeToAttacked = args.excludeToAttacked
         self.excludeToCapturable = args.excludeToCapturable
+        self.concurrency = args.concurrency
         self.verbose = args.verbose
 
     def create_tb(self):
@@ -69,27 +70,37 @@ class MateTB:
         print("Create the allowed part of the game tree ...")
         count, self.fen2index = 0, {}
         queue = collections.deque([self.root_pos])
-        while queue:
-            fen = queue.popleft()
-            if fen in self.fen2index:
-                continue
-            self.fen2index[fen] = count
-            count += 1
-            if count % 1000 == 0:
-                print(f"Progress: {count}", end="\r")
-            board = chess.Board(fen)
-            for move in board.legal_moves:
-                if (
-                    count == 1
-                    and self.firstMove
-                    and move != chess.Move.from_uci(self.firstMove)
-                ):
-                    continue
-                if self.allowed_move(board, move):
-                    board.push(move)
-                    queue.append(board.epd())
-                    board.pop()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            while queue:
+                futures = []
+                while queue and len(futures) < self.concurrency:
+                    fen = queue.popleft()
+                    if fen in self.fen2index:
+                        continue
+                    self.fen2index[fen] = count
+                    count += 1
+                    if count % 1000 == 0:
+                        print(f"Progress: {count}", end="\r")
+                    futures.append(executor.submit(self.get_allowed_children, fen, count))
+                for future in concurrent.futures.as_completed(futures):
+                    queue.extend(future.result())
         print(f"Found {len(self.fen2index)} positions in {time.time()-tic:.2f}s")
+
+    def get_allowed_children(self, fen, count):
+        l = []
+        board = chess.Board(fen)
+        for move in board.legal_moves:
+            if (
+                count == 1
+                and self.firstMove
+                and move != chess.Move.from_uci(self.firstMove)
+            ):
+                continue
+            if self.allowed_move(board, move):
+                board.push(move)
+                l.append(board.epd())
+                board.pop()
+        return l
 
     def initialize_tb(self):
         """tb is a list that holds for each fen the score and the child indices"""
@@ -252,6 +263,12 @@ if __name__ == "__main__":
         "--epd",
         default="8/8/8/1p6/6k1/1p2Q3/p1p1p3/rbrbK3 w - - bm #36;",
         help="EPD for the root position. If bm is not given, it is assumed that the side to move is mating.",
+    )
+    parser.add_argument(
+        "--concurrency",
+        help="Number of threads that may work concurrently.",
+        type=int,
+        default=os.cpu_count(),
     )
     parser.add_argument(
         "--firstMove",
