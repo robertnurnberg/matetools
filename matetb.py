@@ -221,23 +221,23 @@ def fill_exclude_options(args):
         return
     epd = " ".join(args.epd.split()[:4])
     if epd in [
-        "8/8/8/1p6/6k1/1p2Q3/p1p1p3/rbrbK3 w - -",
-        "8/8/8/1p6/6k1/1Q6/p1p1p3/rbrbK3 b - -",
+        "8/8/8/1p6/6k1/1p2Q3/p1p1p3/rbrbK3 w - -",  # bm #36 (success)
+        "8/8/8/1p6/6k1/1Q6/p1p1p3/rbrbK3 b - -", # bm #-35 (success)
     ]:
         args.excludeFrom = "e1"
         args.excludeTo = "a1 c1"
         args.excludeToAttacked = True
-    elif epd == "7k/8/5p2/8/8/8/P1Kp1pp1/4brrb w - -":
+    elif epd == "7k/8/5p2/8/8/8/P1Kp1pp1/4brrb w - -": # bm #43 (success)
         args.firstMove = "c2d1"
         args.excludeFrom = "d1"
         args.excludeToAttacked = True
-    elif epd == "8/1p6/8/3p3k/3p4/6Q1/pp1p4/rrbK4 w - -":
+    elif epd == "8/1p6/8/3p3k/3p4/6Q1/pp1p4/rrbK4 w - -": # bm #46 (success)
         args.excludeFrom = "d1"
         args.excludeCaptures = True
         args.excludeToAttacked = True
     elif epd in [
-        "8/1p6/4k3/8/3p1Q2/3p4/pp1p4/rrbK4 w - -",
-        "8/6pp/5p2/k7/3p4/1Q2p3/3prpp1/3Kbqrb w - -",
+        "8/1p6/4k3/8/3p1Q2/3p4/pp1p4/rrbK4 w - -", # bm #56 (success)
+        "8/6pp/5p2/k7/3p4/1Q2p3/3prpp1/3Kbqrb w - -", # bm #57 (success)
     ]:
         args.excludeFrom = "d1"
         args.excludeToAttacked = True
