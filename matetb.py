@@ -17,6 +17,7 @@ class MateTB:
         self.root_pos = " ".join(parts[:4])
         playing_side = chess.BLACK if parts[1] == "b" else chess.WHITE
         self.mating_side = not playing_side if " bm #-" in args.epd else playing_side
+        print(f"Restrict moves for {'WHITE' if self.mating_side else 'BLACK'} side.")
         self.firstMove = args.firstMove
         if self.firstMove and self.mating_side != playing_side:
             print("Cannot specify first move for losing side!")
@@ -32,6 +33,7 @@ class MateTB:
         self.excludeCaptures = args.excludeCaptures
         self.excludeToAttacked = args.excludeToAttacked
         self.excludeToCapturable = args.excludeToCapturable
+        self.excludePromotionTo = args.excludePromotionTo
         self.verbose = args.verbose
 
     def create_tb(self):
@@ -60,6 +62,10 @@ class MateTB:
                     board.pop()
                     return False
             board.pop()
+        if self.excludePromotionTo:
+            uci = move.uci()
+            if len(uci) == 5 and uci[4] in self.excludePromotionTo:
+                return False
 
         return True
 
@@ -94,7 +100,7 @@ class MateTB:
     def initialize_tb(self):
         """tb is a list that holds for each fen the score and the child indices"""
         tic = time.time()
-        print(f"Connect child nodes and score leaf positions ...")
+        print(f"Connect child nodes and score checkmate positions ...")
         dim = len(self.fen2index)
         self.tb = [None] * dim
         for fen, idx in self.fen2index.items():
@@ -211,27 +217,133 @@ def fill_exclude_options(args):
         or args.excludeCaptures
         or args.excludeToAttacked
         or args.excludeToCapturable
+        or args.excludePromotionTo
     ):
         return
     epd = " ".join(args.epd.split()[:4])
-    if epd in [
-        "8/8/8/1p6/6k1/1p2Q3/p1p1p3/rbrbK3 w - -",  # bm #36 (success)
-        "8/8/8/1p6/6k1/1Q6/p1p1p3/rbrbK3 b - -",  # bm #-35 (success)
+    if epd == "8/8/7P/8/pp6/kp6/1p6/1Kb5 w - -":  # bm 7
+        args.excludeFrom = "b1"
+        args.excludeToCapturable = True
+        args.excludeCaptures = True
+        args.excludePromotionTo = "qrb"
+    elif epd in [
+        "8/6Q1/8/7k/8/6p1/6p1/6Kb w - -",  # bm #7
+        "8/8/8/8/Q7/5kp1/6p1/6Kb w - -",  # bm #7
+    ]:
+        args.excludeFrom = "g1"
+        args.excludeToCapturable = True
+    elif epd == "8/3Q4/8/1r6/kp6/bp6/1p6/1K6 w - -":  # bm #8
+        args.excludeFrom = "b1"
+        args.excludeTo = "b3"
+        args.excludeToCapturable = True
+    elif epd == "k7/2Q5/8/2p5/1pp5/1pp5/prp5/nbK5 w - -":  # bm #11
+        args.excludeFrom = "c1"
+        args.excludeTo = "b2"
+        args.excludeToCapturable = True
+    elif epd == "8/2P5/8/8/8/1p2k1p1/1p1pppp1/1Kbrqbrn w - -":  # bm #12
+        args.firstMove = "c7c8q"
+        args.excludeFrom = "b1"
+        args.excludeToCapturable = True
+    elif epd == "8/8/1p6/1p6/1p6/1p6/pppbK3/rbk3N1 w - -":  # bm #13
+        args.excludeFrom = "e2"
+        args.excludeToCapturable = True
+    elif epd == "8/8/8/2p5/1pp5/brpp4/1pprp2P/qnkbK3 w - -":  # bm #15
+        args.excludeFrom = "e1"
+        args.excludeToCapturable = True
+        args.excludePromotionTo = "qrb"
+    elif epd == "4k3/6Q1/8/8/5p2/1p1p1p2/1ppp1p2/nrqrbK2 w - -":  # bm #15
+        args.excludeFrom = "f1"
+        args.excludeToCapturable = True
+    elif epd in [
+        "k7/8/1Qp5/2p5/2p5/6p1/2p1ppp1/2Kbrqrn w - -",  # bm #7
+        "8/8/8/6r1/8/6B1/p1p5/k1Kb4 w - -",  # bm #16
+    ]:
+        args.excludeFrom = "c1"
+        args.excludeToCapturable = True
+    elif epd == "8/8/8/2p5/1pp5/brpp4/qpprp2P/1nkbnK2 w - -":  # bm #16
+        args.firstMove = "f1e1"
+        args.excludeFrom = "e1"
+        args.excludeToCapturable = True
+        args.excludePromotionTo = "qrb"
+    elif epd == "8/8/8/2p5/1pp5/brpp4/qpprpK1P/1nkbn3 w - -":  # bm #16
+        args.firstMove = "f2e1"
+        args.excludeFrom = "e1"
+        args.excludeToCapturable = True
+        args.excludePromotionTo = "qrb"
+    elif epd == "8/p7/8/8/8/3p1b2/pp1K1N2/qk6 w - -":  # bm #18
+        args.excludeFrom = "d2"
+        args.excludeToCapturable = True
+    elif epd == "k7/8/1Q6/8/8/6p1/1p1pppp1/1Kbrqbrn w - -":  # bm #26
+        args.excludeFrom = "b1"
+        args.excludeToCapturable = True
+    elif epd in [
+        "8/8/2p5/2p5/p1p5/rbp5/p1p2Q2/n1K4k w - -",  # bm #26
+        "8/2p5/2p5/8/p1p5/rbp5/p1p2Q2/n1K4k w - -",  # bm #28
+    ]:
+        args.excludeFrom = "c1"
+        args.excludeTo = "a3 c3"
+        args.excludeToCapturable = True
+    elif epd in [
+        "4k3/6Q1/8/5p2/5p2/1p3p2/1ppp1p2/nrqrbK2 w - -",  # bm #17
+        "4k3/6Q1/8/8/8/1p3p2/1ppp1p2/nrqrbK2 w - -",  # bm #18
+        "8/7p/4k3/5p2/3Q1p2/5p2/5p1p/5Kbr w - -",  # bm #30
+    ]:
+        args.excludeFrom = "f1"
+        args.excludeTo = "h1"
+        args.excludeToCapturable = True
+    elif epd in [
+        "8/8/8/8/6k1/8/2Qp1pp1/3Kbrrb w - -",  # bm #9
+        "8/3Q4/8/2kp4/8/1p1p4/pp1p4/rrbK4 w - -",  # bm #12
+        "8/8/8/6k1/3Q4/8/3p1pp1/3Kbrrb w - -",  # bm #12
+        "k7/8/8/2Q5/3p4/1p1p4/pp1p4/rrbK4 w - -",  # bm #14
+        "7k/8/8/8/8/5Qp1/3p1pp1/3Kbrrn w - -",  # bm #16
+        "6k1/8/5Q2/8/8/8/3p1pp1/3Kbrrb w - -",  # bm #17
+        "4Q3/6k1/8/8/8/8/3p1pp1/3Kbrrb w - -",  # bm #18
+        "5k2/8/4Q3/8/8/8/3p1pp1/3Kbrrb w - -",  # bm #18
+        "6k1/8/8/8/8/3Q4/3p1pp1/3Kbrrb w - -",  # bm #18
+        "8/8/8/1p6/1k6/3Q4/pp1p4/rrbK4 w - -",  # bm #18
+        "4k3/8/3Q4/8/8/8/3p1pp1/3Kbrrb w - -",  # bm #19
+        "4k3/2Q5/8/8/8/8/3p1pp1/3Kbrrb w - -",  # bm #20
+        "8/8/8/8/1Q6/3k4/3p1pp1/3Kbrrb w - -",  # bm #20
+        "8/8/6k1/Q7/8/8/3p1pp1/3Kbrrb w - -",  # bm #20
+        "8/8/2k5/8/3p4/Qp1p4/pp1p4/rrbK4 w - -",  # bm #20
+        "8/3k4/3p1Q2/8/8/1p1p4/pp1p4/rrbK4 w - -",  # bm #23
+        "8/1p6/1Q6/8/2kp4/3p4/pp1p4/rrbK4 w - -",  # bm #26
+        "8/6p1/4Q3/6k1/8/8/3p1pp1/3Kbrrb w - -",  # bm #29
+        "2k5/3p4/1Q6/8/8/1p1p4/pp1p4/rrbK4 w - -",  # bm #30
+        "4k3/3p4/5Q2/8/8/1p1p4/pp1p4/rrbK4 w - -",  # bm #30
+        "3Q4/8/8/8/k7/8/3p1pp1/3Kbrrb w - -",  # bm #32
+        "8/2Q5/8/8/1k1p4/4p1p1/3prpp1/3Kbbrn w - -",  # bm #34
+    ]:
+        args.excludeFrom = "d1"
+        args.excludeToCapturable = True
+    elif epd in [
+        "8/8/8/1p6/6k1/1p2Q3/p1p1p3/rbrbK3 w - -",  # bm #36
+        "8/8/8/1p6/6k1/1Q6/p1p1p3/rbrbK3 b - -",  # bm #-35
     ]:
         args.excludeFrom = "e1"
         args.excludeTo = "a1 c1"
         args.excludeToAttacked = True
-    elif epd == "7k/8/5p2/8/8/8/P1Kp1pp1/4brrb w - -":  # bm #43 (success)
+    elif epd == "7k/8/5p2/8/8/8/P1Kp1pp1/4brrb w - -":  # bm #43
         args.firstMove = "c2d1"
         args.excludeFrom = "d1"
         args.excludeToAttacked = True
-    elif epd == "8/1p6/8/3p3k/3p4/6Q1/pp1p4/rrbK4 w - -":  # bm #46 (success)
+    elif epd == "8/1p6/8/3p3k/3p4/6Q1/pp1p4/rrbK4 w - -":  # bm #46
         args.excludeFrom = "d1"
         args.excludeCaptures = True
         args.excludeToAttacked = True
     elif epd in [
-        "8/1p6/4k3/8/3p1Q2/3p4/pp1p4/rrbK4 w - -",  # bm #56 (success)
-        "8/6pp/5p2/k7/3p4/1Q2p3/3prpp1/3Kbqrb w - -",  # bm #57 (success)
+        "6Q1/8/7k/8/8/6p1/4p1pb/4Kbrr w - -",  # bm #12
+        "2Q5/k7/8/8/8/8/1pp1p3/brrbK3 w - -",  # bm #16
+        "8/8/3p4/1Q6/8/2k5/ppp1p3/brrbK3 w - -",  # bm #22
+        "8/1p2k3/8/8/5Q2/8/ppp1p3/qrrbK3 w - -",  # bm #50
+        "8/1p2k3/8/8/5Q2/8/ppp1p3/bqrbK3 w - -",  # bm #50
+    ]:
+        args.excludeFrom = "e1"
+        args.excludeToCapturable = True
+    elif epd in [
+        "8/1p6/4k3/8/3p1Q2/3p4/pp1p4/rrbK4 w - -",  # bm #56
+        "8/6pp/5p2/k7/3p4/1Q2p3/3prpp1/3Kbqrb w - -",  # bm #57
     ]:
         args.excludeFrom = "d1"
         args.excludeToAttacked = True
@@ -275,6 +387,10 @@ if __name__ == "__main__":
         help="Never move to squares that would allow a capture (much slower than --excludeToAttacked).",
     )
     parser.add_argument(
+        "--excludePromotionTo",
+        help='String containing piece types that should never be promoted to, e.g. "qrb".',
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="count",
@@ -291,6 +407,7 @@ if __name__ == "__main__":
         ("excludeCaptures", args.excludeCaptures),
         ("excludeToAttacked", args.excludeToAttacked),
         ("excludeToCapturable", args.excludeToCapturable),
+        ("excludePromotionTo", args.excludePromotionTo),
     ]
     options = " ".join(
         [
