@@ -13,6 +13,8 @@ def score2mate(score):
 
 class MateTB:
     def __init__(self, args):
+        self.fen2index = {}  # maps FENs from game tree to their index idx
+        self.tb = []  # tb[idx] = [score, children], children a list of indices
         parts = args.epd.split()
         self.root_pos = " ".join(parts[:4])
         playing_side = chess.BLACK if parts[1] == "b" else chess.WHITE
@@ -37,8 +39,8 @@ class MateTB:
         self.verbose = args.verbose
 
     def create_tb(self):
-        self.get_fen_index()
         self.initialize_tb()
+        self.connect_children()
         self.generate_tb()
 
     def allowed_move(self, board, move):
@@ -69,11 +71,10 @@ class MateTB:
 
         return True
 
-    def get_fen_index(self):
-        """fen2index maps the unique FENs from the game tree to integer indices"""
+    def initialize_tb(self):
         tic = time.time()
         print("Create the allowed part of the game tree ...")
-        count, self.fen2index = 0, {}
+        count = 0
         queue = collections.deque([self.root_pos])
         while queue:
             fen = queue.popleft()
@@ -84,6 +85,10 @@ class MateTB:
             if count % 1000 == 0:
                 print(f"Progress: {count}", end="\r")
             board = chess.Board(fen)
+            score = -VALUE_MATE if board.is_checkmate() else 0
+            self.tb.append([score, []])
+            if score:
+                continue
             for move in board.legal_moves:
                 if (
                     count == 1
@@ -97,23 +102,18 @@ class MateTB:
                     board.pop()
         print(f"Found {len(self.fen2index)} positions in {time.time()-tic:.2f}s")
 
-    def initialize_tb(self):
-        """tb is a list that holds for each fen the score and the child indices"""
+    def connect_children(self):
         tic = time.time()
-        print(f"Connect child nodes and score checkmate positions ...")
+        print(f"Connect child nodes ...")
         dim = len(self.fen2index)
-        self.tb = [None] * dim
         for fen, idx in self.fen2index.items():
             board = chess.Board(fen)
-            score = -VALUE_MATE if board.is_checkmate() else 0
-            children = []
             for move in board.legal_moves:
                 board.push(move)
                 childidx = self.fen2index.get(board.epd(), None)
                 if childidx is not None:
-                    children.append(childidx)
+                    self.tb[idx][1].append(childidx)
                 board.pop()
-            self.tb[idx] = [score, children]
             if (idx + 1) % 1000 == 0:
                 print(f"Progress: {idx+1}/{dim}", end="\r")
         print(f"Connected {len(self.tb)} positions in {time.time()-tic:.2f}s")
