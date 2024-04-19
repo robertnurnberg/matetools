@@ -1,4 +1,4 @@
-import argparse, chess, collections, time
+import argparse, chess, chess.engine, collections, time
 
 VALUE_MATE = 30000
 
@@ -36,6 +36,13 @@ class MateTB:
         self.excludeToAttacked = args.excludeToAttacked
         self.excludeToCapturable = args.excludeToCapturable
         self.excludePromotionTo = args.excludePromotionTo
+
+        self.engine = args.engine
+        if self.engine:
+            n = None if args.limitNodes is None else int(args.limitNodes)
+            d = None if args.limitDepth is None else int(args.limitDepth)
+            t = None if args.limitTime is None else float(args.limitTime)
+            self.limit = chess.engine.Limit(nodes=n, depth=d, time=t)
         self.verbose = args.verbose
 
     def create_tb(self):
@@ -391,6 +398,15 @@ if __name__ == "__main__":
         help='String containing piece types that should never be promoted to, e.g. "qrb".',
     )
     parser.add_argument(
+        "--engine",
+        help="optional name of the engine binary to cut off moves by the losing side",
+    )
+    parser.add_argument("--limitNodes", help="engine's nodes limit per position")
+    parser.add_argument("--limitDepth", help="engine's depth limit per position")
+    parser.add_argument(
+        "--limitTime", help="engine's time limit (in seconds) per position"
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="count",
@@ -408,6 +424,10 @@ if __name__ == "__main__":
         ("excludeToAttacked", args.excludeToAttacked),
         ("excludeToCapturable", args.excludeToCapturable),
         ("excludePromotionTo", args.excludePromotionTo),
+        ("engine", args.engine),
+        ("limitNodes", args.limitNodes),
+        ("limitDepth", args.limitDepth),
+        ("limitTime", args.limitTime),
     ]
     options = " ".join(
         [
