@@ -34,8 +34,29 @@ class MateTB:
                 self.BBexcludeTo |= chess.BB_SQUARES[chess.parse_square(square)]
         self.excludeCaptures = args.excludeCaptures
         self.excludeToAttacked = args.excludeToAttacked
-        self.excludeToCapturable = args.excludeToCapturable
         self.excludePromotionTo = args.excludePromotionTo
+
+        self.excludeAllowingCapture = args.excludeAllowingCapture
+        self.BBexcludeAllowingFrom = self.BBexcludeAllowingTo = 0
+        if args.excludeAllowingFrom:
+            for square in args.excludeAllowingFrom.split():
+                self.BBexcludeAllowingFrom |= chess.BB_SQUARES[
+                    chess.parse_square(square)
+                ]
+        if args.excludeAllowingTo:
+            for square in args.excludeAllowingTo.split():
+                self.BBexcludeAllowingTo |= chess.BB_SQUARES[chess.parse_square(square)]
+        self.excludeAllowingMoves = (
+            []
+            if args.excludeAllowingMoves is None
+            else [m[:4] for m in args.excludeAllowingMoves.split()]
+        )
+        self.needToGenerateResponses = (
+            args.excludeAllowingCapture
+            or self.BBexcludeAllowingFrom
+            or self.BBexcludeAllowingTo
+            or self.excludeAllowingMoves
+        )
 
         self.engine = args.engine
         if self.engine:
@@ -43,6 +64,7 @@ class MateTB:
             d = None if args.limitDepth is None else int(args.limitDepth)
             t = None if args.limitTime is None else float(args.limitTime)
             self.limit = chess.engine.Limit(nodes=n, depth=d, time=t)
+
         self.verbose = args.verbose
 
     def create_tb(self):
@@ -64,17 +86,22 @@ class MateTB:
             not board.turn, move.to_square
         ):
             return False
-        if self.excludeToCapturable:
-            board.push(move)
-            for m in board.legal_moves:
-                if board.is_capture(m):
-                    board.pop()
-                    return False
-            board.pop()
         if self.excludePromotionTo:
             uci = move.uci()
             if len(uci) == 5 and uci[4] in self.excludePromotionTo:
                 return False
+        if self.needToGenerateResponses:
+            board.push(move)
+            for m in board.legal_moves:
+                if (
+                    (self.excludeAllowingCapture and board.is_capture(m))
+                    or (self.BBexcludeAllowingFrom & (1 << m.from_square))
+                    or (self.BBexcludeAllowingTo & (1 << m.to_square))
+                    or (m.uci()[:4] in self.excludeAllowingMoves)
+                ):
+                    board.pop()
+                    return False
+            board.pop()
 
         return True
 
@@ -147,6 +174,14 @@ class MateTB:
         print(
             f"Tablebase generated with {iteration} iterations in {time.time()-tic:.2f}s"
         )
+
+    def write_tb(self, filename):
+        with open(filename, "w") as f:
+            for fen, idx in self.fen2index.items():
+                s = self.tb[idx][0]
+                bmstr = "" if s is None else f"bm #{score2mate(s)};"
+                f.write(f"{fen} {bmstr}\n")
+        print(f"Wrote TB to {filename}.")
 
     def obtain_pv(self, board):
         if (
@@ -223,73 +258,76 @@ def fill_exclude_options(args):
         or args.excludeTo
         or args.excludeCaptures
         or args.excludeToAttacked
-        or args.excludeToCapturable
         or args.excludePromotionTo
+        or args.excludeAllowingCapture
+        or args.excludeAllowingFrom
+        or args.excludeAllowingTo
+        or args.excludeAllowingMoves
     ):
         return
     epd = " ".join(args.epd.split()[:4])
     if epd == "8/8/7P/8/pp6/kp6/1p6/1Kb5 w - -":  # bm 7
         args.excludeFrom = "b1"
-        args.excludeToCapturable = True
         args.excludeCaptures = True
         args.excludePromotionTo = "qrb"
+        args.excludeAllowingCapture = True
     elif epd in [
         "8/6Q1/8/7k/8/6p1/6p1/6Kb w - -",  # bm #7
         "8/8/8/8/Q7/5kp1/6p1/6Kb w - -",  # bm #7
     ]:
         args.excludeFrom = "g1"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd == "8/3Q4/8/1r6/kp6/bp6/1p6/1K6 w - -":  # bm #8
         args.excludeFrom = "b1"
         args.excludeTo = "b3"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd == "k7/2Q5/8/2p5/1pp5/1pp5/prp5/nbK5 w - -":  # bm #11
         args.excludeFrom = "c1"
         args.excludeTo = "b2"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd == "8/2P5/8/8/8/1p2k1p1/1p1pppp1/1Kbrqbrn w - -":  # bm #12
         args.firstMove = "c7c8q"
         args.excludeFrom = "b1"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd == "8/8/1p6/1p6/1p6/1p6/pppbK3/rbk3N1 w - -":  # bm #13
         args.excludeFrom = "e2"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd == "8/8/8/2p5/1pp5/brpp4/1pprp2P/qnkbK3 w - -":  # bm #15
         args.excludeFrom = "e1"
-        args.excludeToCapturable = True
         args.excludePromotionTo = "qrb"
+        args.excludeAllowingCapture = True
     elif epd == "4k3/6Q1/8/8/5p2/1p1p1p2/1ppp1p2/nrqrbK2 w - -":  # bm #15
         args.excludeFrom = "f1"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd in [
         "k7/8/1Qp5/2p5/2p5/6p1/2p1ppp1/2Kbrqrn w - -",  # bm #7
         "8/8/8/6r1/8/6B1/p1p5/k1Kb4 w - -",  # bm #16
     ]:
         args.excludeFrom = "c1"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd == "8/8/8/2p5/1pp5/brpp4/qpprp2P/1nkbnK2 w - -":  # bm #16
         args.firstMove = "f1e1"
         args.excludeFrom = "e1"
-        args.excludeToCapturable = True
         args.excludePromotionTo = "qrb"
+        args.excludeAllowingCapture = True
     elif epd == "8/8/8/2p5/1pp5/brpp4/qpprpK1P/1nkbn3 w - -":  # bm #16
         args.firstMove = "f2e1"
         args.excludeFrom = "e1"
-        args.excludeToCapturable = True
         args.excludePromotionTo = "qrb"
+        args.excludeAllowingCapture = True
     elif epd == "8/p7/8/8/8/3p1b2/pp1K1N2/qk6 w - -":  # bm #18
         args.excludeFrom = "d2"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd == "k7/8/1Q6/8/8/6p1/1p1pppp1/1Kbrqbrn w - -":  # bm #26
         args.excludeFrom = "b1"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd in [
         "8/8/2p5/2p5/p1p5/rbp5/p1p2Q2/n1K4k w - -",  # bm #26
         "8/2p5/2p5/8/p1p5/rbp5/p1p2Q2/n1K4k w - -",  # bm #28
     ]:
         args.excludeFrom = "c1"
         args.excludeTo = "a3 c3"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd in [
         "4k3/6Q1/8/5p2/5p2/1p3p2/1ppp1p2/nrqrbK2 w - -",  # bm #17
         "4k3/6Q1/8/8/8/1p3p2/1ppp1p2/nrqrbK2 w - -",  # bm #18
@@ -297,7 +335,7 @@ def fill_exclude_options(args):
     ]:
         args.excludeFrom = "f1"
         args.excludeTo = "h1"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd in [
         "8/8/8/8/6k1/8/2Qp1pp1/3Kbrrb w - -",  # bm #9
         "8/3Q4/8/2kp4/8/1p1p4/pp1p4/rrbK4 w - -",  # bm #12
@@ -323,7 +361,7 @@ def fill_exclude_options(args):
         "8/2Q5/8/8/1k1p4/4p1p1/3prpp1/3Kbbrn w - -",  # bm #34
     ]:
         args.excludeFrom = "d1"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd in [
         "8/8/8/1p6/6k1/1p2Q3/p1p1p3/rbrbK3 w - -",  # bm #36
         "8/8/8/1p6/6k1/1Q6/p1p1p3/rbrbK3 b - -",  # bm #-35
@@ -347,13 +385,25 @@ def fill_exclude_options(args):
         "8/1p2k3/8/8/5Q2/8/ppp1p3/bqrbK3 w - -",  # bm #50
     ]:
         args.excludeFrom = "e1"
-        args.excludeToCapturable = True
+        args.excludeAllowingCapture = True
     elif epd in [
         "8/1p6/4k3/8/3p1Q2/3p4/pp1p4/rrbK4 w - -",  # bm #56
         "8/6pp/5p2/k7/3p4/1Q2p3/3prpp1/3Kbqrb w - -",  # bm #57
     ]:
         args.excludeFrom = "d1"
         args.excludeToAttacked = True
+    elif epd == "8/8/7p/5K1k/R7/8/8/8 w - -":  # bm #6
+        args.excludeAllowingCapture = True
+        args.excludeAllowingMoves = "h2h1"
+    elif epd == "8/4p2p/8/8/8/8/6p1/2B1K1kb w - -": # bm #7
+        args.excludeAllowingCapture = True
+        args.excludeAllowingFrom = "g1"
+        args.excludeAllowingMoves = "e6e5 e5e4"
+    elif epd == "8/7p/7p/7p/1p3Q1p/1Kp5/nppr4/qrk5 w - -":  # bm #54 (not yet)
+        args.excludeFrom = "b3"
+        args.excludeAllowingCapture = True
+        args.excludeAllowingFrom = "b1"
+        args.excludeAllowingMoves = "h2h1 c3c2 c2c1"
 
 
 if __name__ == "__main__":
@@ -389,17 +439,33 @@ if __name__ == "__main__":
         help="Never move to attacked squares (including from pinned pieces, but ignoring en passant).",
     )
     parser.add_argument(
-        "--excludeToCapturable",
-        action="store_true",
-        help="Never move to squares that would allow a capture (much slower than --excludeToAttacked).",
-    )
-    parser.add_argument(
         "--excludePromotionTo",
         help='String containing piece types that should never be promoted to, e.g. "qrb".',
     )
     parser.add_argument(
+        "--excludeAllowingCapture",
+        action="store_true",
+        help="Avoid moves that allow a capture (much slower than --excludeToAttacked).",
+    )
+    parser.add_argument(
+        "--excludeAllowingFrom",
+        help="Space separated square names that opponent's pieces should not be allowed to move from in reply to our move.",
+    )
+    parser.add_argument(
+        "--excludeAllowingTo",
+        help="Space separated square names that opponent's pieces should not be allowed to move to in reply to our move.",
+    )
+    parser.add_argument(
+        "--excludeAllowingMoves",
+        help="Space separated moves that opponent should not be allowed to make in reply to our move.",
+    )
+    parser.add_argument(
+        "--outFile",
+        help="Optional output file for the TB.",
+    )
+    parser.add_argument(
         "--engine",
-        help="optional name of the engine binary to cut off moves by the losing side",
+        help="Optional name of the engine binary to cut off moves by the losing side.",
     )
     parser.add_argument("--limitNodes", help="engine's nodes limit per position")
     parser.add_argument("--limitDepth", help="engine's depth limit per position")
@@ -422,8 +488,11 @@ if __name__ == "__main__":
         ("excludeTo", args.excludeTo),
         ("excludeCaptures", args.excludeCaptures),
         ("excludeToAttacked", args.excludeToAttacked),
-        ("excludeToCapturable", args.excludeToCapturable),
         ("excludePromotionTo", args.excludePromotionTo),
+        ("excludeAllowingCapture", args.excludeAllowingCapture),
+        ("excludeAllowingFrom", args.excludeAllowingFrom),
+        ("excludeAllowingTo", args.excludeAllowingTo),
+        ("excludeAllowingMoves", args.excludeAllowingMoves),
         ("engine", args.engine),
         ("limitNodes", args.limitNodes),
         ("limitDepth", args.limitDepth),
@@ -443,4 +512,6 @@ if __name__ == "__main__":
     print(f"Running with options {options}")
     mtb = MateTB(args)
     mtb.create_tb()
+    if args.outFile:
+        mtb.write_tb(args.outFile)
     mtb.output()
