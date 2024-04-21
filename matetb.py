@@ -394,8 +394,8 @@ def fill_exclude_options(args):
     elif epd == "8/7p/7p/7p/1p3Q1p/1Kp5/nppr4/qrk5 w - -":  # bm #54 (not yet)
         args.excludeFrom = "b3"
         args.excludeAllowingCapture = True
-        args.excludeAllowingFrom = "b1"
-        args.excludeAllowingMoves = "h2h1 c3c2 c2c1"
+        args.excludeAllowingFrom = "b1 h1"
+        args.excludeAllowingMoves = "c3c2 c2c1"
 
 
 if __name__ == "__main__":
