@@ -396,6 +396,11 @@ def fill_exclude_options(args):
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "b1 h1"
         args.excludeAllowingMoves = "c3c2 c2c1"
+    elif epd == "8/1p4Pp/1p6/1p6/1p5p/5r1k/5p1p/5Kbr w - -": # bm #72 (not yet)
+        args.firstMove = "g7g8q"
+        args.excludeFrom = "f1"
+        args.excludeAllowingCapture = True
+        args.excludeAllowingFrom = "b2"
 
 
 if __name__ == "__main__":
