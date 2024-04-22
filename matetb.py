@@ -402,7 +402,7 @@ def fill_exclude_options(args):
         args.firstMove = "g7g8q"
         args.excludeFrom = "f1"
         args.excludeAllowingCapture = True
-        args.excludeAllowingFrom = "b2 h4 b4" # just a test
+        args.excludeAllowingFrom = "b2 h4 b5" # just a test
 
 
 if __name__ == "__main__":
