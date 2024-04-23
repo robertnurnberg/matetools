@@ -396,13 +396,12 @@ def fill_exclude_options(args):
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "b1 h1"
         args.excludeAllowingMoves = "c3c2 c2c1"
-    elif epd == "8/1p4Pp/1p6/1p6/1p5p/5r1k/5p1p/5Kbr w - -": # bm #72 (not yet)
-        # estimate for reduced game tree size:
-        # 7*6*5*4*4*2*64*64*2 * 2 = 110100480 (too large for mem)
+    elif epd == "8/1p4Pp/1p6/1p6/1p5p/5r1k/5p1p/5Kbr w - -": # bm #72
         args.firstMove = "g7g8q"
         args.excludeFrom = "f1"
+        args.excludeTo = "h1"
         args.excludeAllowingCapture = True
-        args.excludeAllowingFrom = "b2 h4 b5" # just a test
+        args.excludeAllowingFrom = "b3 h5 h4"
 
 
 if __name__ == "__main__":
