@@ -396,6 +396,11 @@ def fill_exclude_options(args):
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "b1 h1"
         args.excludeAllowingMoves = "c3c2 c2c1"
+    elif epd == "5Q2/p1p5/p1p5/6rp/7k/6p1/p1p3P1/rbK5 w - -": # bm #62
+        args.excludeFrom = "c1 g2"
+        args.excludeTo = "a1 g3"
+        args.excludeAllowingCapture = True
+        args.excludeAllowingFrom = "h5"
     elif epd == "8/1p4Pp/1p6/1p6/1p5p/5r1k/5p1p/5Kbr w - -": # bm #72
         args.firstMove = "g7g8q"
         args.excludeFrom = "f1"
