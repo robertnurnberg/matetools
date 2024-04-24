@@ -49,7 +49,7 @@ class MateTB:
         self.excludeAllowingMoves = (
             []
             if args.excludeAllowingMoves is None
-            else [m[:4] for m in args.excludeAllowingMoves.split()]
+            else args.excludeAllowingMoves.split()
         )
         self.needToGenerateResponses = (
             args.excludeAllowingCapture
@@ -89,7 +89,7 @@ class MateTB:
                     (self.excludeAllowingCapture and board.is_capture(m))
                     or (self.BBexcludeAllowingFrom & (1 << m.from_square))
                     or (self.BBexcludeAllowingTo & (1 << m.to_square))
-                    or (m.uci()[:4] in self.excludeAllowingMoves)
+                    or (m.uci() in self.excludeAllowingMoves)
                 ):
                     board.pop()
                     return False
@@ -386,7 +386,7 @@ def fill_exclude_options(args):
         args.excludeToAttacked = True
     elif epd == "8/8/7p/5K1k/R7/8/8/8 w - -":  # bm #6
         args.excludeAllowingCapture = True
-        args.excludeAllowingMoves = "h2h1"
+        args.excludeAllowingMoves = "h2h1q"
     elif epd == "8/4p2p/8/8/8/8/6p1/2B1K1kb w - -":  # bm #7
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "g1"
@@ -395,7 +395,7 @@ def fill_exclude_options(args):
         args.excludeFrom = "b3"
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "b1 h1"
-        args.excludeAllowingMoves = "c3c2 c2c1"
+        args.excludeAllowingMoves = "c3c2 c2c1 c2c1q"  # TODO: remove c2c1
     elif epd == "5Q2/p1p5/p1p5/6rp/7k/6p1/p1p3P1/rbK5 w - -":  # bm #62
         args.excludeFrom = "c1 g2"
         args.excludeTo = "a1 g3"
