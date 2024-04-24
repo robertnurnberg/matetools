@@ -54,10 +54,33 @@ class MateTB:
             or self.excludeAllowingMoves
         )
         self.verbose = args.verbose
-        prepare_opening_book(args.openingMoves)
+        self.prepare_opening_book(args.openingMoves)
 
-    def prepare_opening_book(lines):
+    def prepare_opening_book(self, lines):
         self.openingBook = {}
+        if lines is None:
+            return
+        print("Preparing the opening book ...")
+        for line in lines.split(","):
+            moves = line.split()
+            if self.verbose >= 3:
+                print(f"Processing line {' '.join(moves)} ...")
+            board = chess.Board(self.root_pos)
+            for move in moves:
+                if board.turn == self.mating_side:
+                    fen = board.epd()
+                    if fen in self.openingBook:
+                        if self.openingBook[fen] != move:
+                            print(
+                                f"Cannot specify both {move} and {self.openingBook[fen]} for position {fen}."
+                            )
+                            exit(1)
+                    else:
+                        self.openingBook[fen] = move
+                board.push(chess.Move.from_uci(move))
+        print(
+            f"Done. The opening book contains {len(self.openingBook)} positions/moves."
+        )
 
     def create_tb(self):
         self.initialize_tb()
@@ -275,7 +298,7 @@ def fill_exclude_options(args):
         args.excludeTo = "b2"
         args.excludeAllowingCapture = True
     elif epd == "8/2P5/8/8/8/1p2k1p1/1p1pppp1/1Kbrqbrn w - -":  # bm #12
-        args.openingMoves = "c7c8q"  # TODO: check
+        args.openingMoves = "c7c8q"
         args.excludeFrom = "b1"
         args.excludeAllowingCapture = True
     elif epd == "8/8/1p6/1p6/1p6/1p6/pppbK3/rbk3N1 w - -":  # bm #13
@@ -295,12 +318,12 @@ def fill_exclude_options(args):
         args.excludeFrom = "c1"
         args.excludeAllowingCapture = True
     elif epd == "8/8/8/2p5/1pp5/brpp4/qpprp2P/1nkbnK2 w - -":  # bm #16
-        args.openingMoves = "f1e1"  # TODO: check
+        args.openingMoves = "f1e1"
         args.excludeFrom = "e1"
         args.excludePromotionTo = "qrb"
         args.excludeAllowingCapture = True
     elif epd == "8/8/8/2p5/1pp5/brpp4/qpprpK1P/1nkbn3 w - -":  # bm #16
-        args.oepningMoves = "f2e1"  # TODO: check
+        args.openingMoves = "f2e1"
         args.excludeFrom = "e1"
         args.excludePromotionTo = "qrb"
         args.excludeAllowingCapture = True
@@ -359,7 +382,7 @@ def fill_exclude_options(args):
         args.excludeTo = "a1 c1"
         args.excludeToAttacked = True
     elif epd == "7k/8/5p2/8/8/8/P1Kp1pp1/4brrb w - -":  # bm #43
-        args.openingMoves = "c2d1"  # TODO: check
+        args.openingMoves = "c2d1"
         args.excludeFrom = "d1"
         args.excludeToAttacked = True
     elif epd == "8/1p6/8/3p3k/3p4/6Q1/pp1p4/rrbK4 w - -":  # bm #46
@@ -392,14 +415,14 @@ def fill_exclude_options(args):
         args.excludeFrom = "b3"
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "b1 h1"
-        args.excludeAllowingMoves = "c3c2 c2c1 c2c1q"  # TODO: remove c2c1
+        args.excludeAllowingMoves = "c3c2"
     elif epd == "5Q2/p1p5/p1p5/6rp/7k/6p1/p1p3P1/rbK5 w - -":  # bm #62
         args.excludeFrom = "c1 g2"
         args.excludeTo = "a1 g3"
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "h5"
     elif epd == "8/1p4Pp/1p6/1p6/1p5p/5r1k/5p1p/5Kbr w - -":  # bm #72
-        args.openingMoves = "g7g8q"  # TODO: check
+        args.openingMoves = "g7g8q"
         args.excludeFrom = "f1"
         args.excludeTo = "h1"
         args.excludeAllowingCapture = True
