@@ -139,6 +139,10 @@ class MateTB:
             if score:
                 continue
             onlyMove = self.openingBook.pop(fen, None)
+            if self.verbose >= 3 and onlyMove:
+                print(f"Picked move {onlyMove} for {fen}.")
+                if self.verbose >= 4:
+                    print(f"Remaining book: {self.openingBook}.")
             for move in board.legal_moves:
                 if onlyMove and move != chess.Move.from_uci(onlyMove):
                     continue
