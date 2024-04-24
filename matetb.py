@@ -81,6 +81,8 @@ class MateTB:
         print(
             f"Done. The opening book contains {len(self.openingBook)} positions/moves."
         )
+        if self.verbose >= 4:
+            print(f"Opening book: {self.openingBook}.")
 
     def create_tb(self):
         self.initialize_tb()
@@ -433,9 +435,9 @@ def fill_exclude_options(args):
         args.excludeAllowingFrom = "b3 h5 h4"
     elif epd in [
         "8/1p4Pp/1p6/1p6/1p5p/5r2/4Kpkp/6br w - -",  # bm #77 (not yet)
-        "8/6Pp/8/8/7p/5r2/4Kpkp/6br w - -",  # bm #19
+        "8/6Pp/8/8/7p/5r2/4Kpkp/6br w - -",  # bm #19 (not yet)
     ]:
-        args.openingMoves = "g7g8q g2h3 e2f1, g7g8q f3g3 g8d5 g3f3 d5f3, g7g8q f3g3 g8d5 g2h3 d5e6 h3h4 e2f1, g7g8q f3g3 g8d5 g2h3 d5e6 h3g2 e6e4 g3f3 e4f3, g7g8q f3g3 g8d5 g2h3 d5e6 h3g2 e6e4 g2h3 e2f1"
+        args.openingMoves = "g7g8q g2h3 e2f1, g7g8q f3g3 g8d5 g3f3 d5f3, g7g8q f3g3 g8d5 g2h3 d5e6 g3g4 e2f1, g7g8q f3g3 g8d5 g2h3 d5e6 h3g2 e6e4 g3f3 e4f3, g7g8q f3g3 g8d5 g2h3 d5e6 h3g2 e6e4 g2h3 e2f1"
         args.excludeFrom = "f1"
         args.excludeTo = "h1"
         args.excludeAllowingCapture = True
