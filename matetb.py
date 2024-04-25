@@ -20,10 +20,6 @@ class MateTB:
         playing_side = chess.BLACK if parts[1] == "b" else chess.WHITE
         self.mating_side = not playing_side if " bm #-" in args.epd else playing_side
         print(f"Restrict moves for {'WHITE' if self.mating_side else 'BLACK'} side.")
-        self.firstMove = args.firstMove
-        if self.firstMove and self.mating_side != playing_side:
-            print("Cannot specify first move for losing side!")
-            exit(1)
 
         self.BBexcludeFrom = self.BBexcludeTo = 0
         if args.excludeFrom:
@@ -58,6 +54,35 @@ class MateTB:
             or self.excludeAllowingMoves
         )
         self.verbose = args.verbose
+        self.prepare_opening_book(args.openingMoves)
+
+    def prepare_opening_book(self, lines):
+        self.openingBook = {}
+        if lines is None:
+            return
+        print("Preparing the opening book ...")
+        for line in lines.split(","):
+            moves = line.split()
+            if self.verbose >= 3:
+                print(f"Processing line {' '.join(moves)} ...")
+            board = chess.Board(self.root_pos)
+            for move in moves:
+                if board.turn == self.mating_side:
+                    fen = board.epd()
+                    if fen in self.openingBook:
+                        if self.openingBook[fen] != move:
+                            print(
+                                f"Cannot specify both {move} and {self.openingBook[fen]} for position {fen}."
+                            )
+                            exit(1)
+                    else:
+                        self.openingBook[fen] = move
+                board.push(chess.Move.from_uci(move))
+        print(
+            f"Done. The opening book contains {len(self.openingBook)} positions/moves."
+        )
+        if self.verbose >= 4:
+            print(f"Opening book: {self.openingBook}.")
 
     def create_tb(self):
         self.initialize_tb()
@@ -115,12 +140,13 @@ class MateTB:
             self.tb.append([score, []])
             if score:
                 continue
+            onlyMove = self.openingBook.pop(fen, None)
+            if self.verbose >= 3 and onlyMove:
+                print(f"Picked move {onlyMove} for {fen}.")
+                if self.verbose >= 4:
+                    print(f"Remaining book: {self.openingBook}.")
             for move in board.legal_moves:
-                if (
-                    count == 1
-                    and self.firstMove
-                    and move != chess.Move.from_uci(self.firstMove)
-                ):
+                if onlyMove and move != chess.Move.from_uci(onlyMove):
                     continue
                 if self.allowed_move(board, move):
                     board.push(move)
@@ -245,7 +271,7 @@ class MateTB:
 def fill_exclude_options(args):
     """For some known EPDs, this defines the right exclude commands."""
     if (
-        args.firstMove
+        args.openingMoves
         or args.excludeFrom
         or args.excludeTo
         or args.excludeCaptures
@@ -278,7 +304,7 @@ def fill_exclude_options(args):
         args.excludeTo = "b2"
         args.excludeAllowingCapture = True
     elif epd == "8/2P5/8/8/8/1p2k1p1/1p1pppp1/1Kbrqbrn w - -":  # bm #12
-        args.firstMove = "c7c8q"
+        args.openingMoves = "c7c8q"
         args.excludeFrom = "b1"
         args.excludeAllowingCapture = True
     elif epd == "8/8/1p6/1p6/1p6/1p6/pppbK3/rbk3N1 w - -":  # bm #13
@@ -298,12 +324,12 @@ def fill_exclude_options(args):
         args.excludeFrom = "c1"
         args.excludeAllowingCapture = True
     elif epd == "8/8/8/2p5/1pp5/brpp4/qpprp2P/1nkbnK2 w - -":  # bm #16
-        args.firstMove = "f1e1"
+        args.openingMoves = "f1e1"
         args.excludeFrom = "e1"
         args.excludePromotionTo = "qrb"
         args.excludeAllowingCapture = True
     elif epd == "8/8/8/2p5/1pp5/brpp4/qpprpK1P/1nkbn3 w - -":  # bm #16
-        args.firstMove = "f2e1"
+        args.openingMoves = "f2e1"
         args.excludeFrom = "e1"
         args.excludePromotionTo = "qrb"
         args.excludeAllowingCapture = True
@@ -362,7 +388,7 @@ def fill_exclude_options(args):
         args.excludeTo = "a1 c1"
         args.excludeToAttacked = True
     elif epd == "7k/8/5p2/8/8/8/P1Kp1pp1/4brrb w - -":  # bm #43
-        args.firstMove = "c2d1"
+        args.openingMoves = "c2d1"
         args.excludeFrom = "d1"
         args.excludeToAttacked = True
     elif epd == "8/1p6/8/3p3k/3p4/6Q1/pp1p4/rrbK4 w - -":  # bm #46
@@ -402,7 +428,16 @@ def fill_exclude_options(args):
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "h5"
     elif epd == "8/1p4Pp/1p6/1p6/1p5p/5r1k/5p1p/5Kbr w - -":  # bm #72
-        args.firstMove = "g7g8q"
+        args.openingMoves = "g7g8q"
+        args.excludeFrom = "f1"
+        args.excludeTo = "h1"
+        args.excludeAllowingCapture = True
+        args.excludeAllowingFrom = "b3 h5 h4"
+    elif epd in [
+        "8/6Pp/8/8/7p/5r2/4Kpkp/6br w - -",  # bm #19
+        "8/1p4Pp/1p6/1p6/1p5p/5r2/4Kpkp/6br w - -",  # bm #77
+    ]:
+        args.openingMoves = "g7g8q g2h3 e2f1, g7g8q f3g3 g8d5 g3f3 d5f3, g7g8q f3g3 g8d5 g2h3 d5e6 g3g4 e2f1, g7g8q f3g3 g8d5 g2h3 d5e6 h3g2 e6e4 g3f3 e4f3, g7g8q f3g3 g8d5 g2h3 d5e6 h3g2 e6e4 g2h3 e2f1"
         args.excludeFrom = "f1"
         args.excludeTo = "h1"
         args.excludeAllowingCapture = True
@@ -420,8 +455,8 @@ if __name__ == "__main__":
         help="EPD for the root position. If bm is not given, it is assumed that the side to move is mating.",
     )
     parser.add_argument(
-        "--firstMove",
-        help="Specify the first move if the mating side is the side to move.",
+        "--openingMoves",
+        help="Comma separated opening lines in UCI notation that specify the mating side's moves.",
     )
     parser.add_argument(
         "--excludeFrom",
@@ -477,7 +512,7 @@ if __name__ == "__main__":
     fill_exclude_options(args)
     options = [
         ("epd", args.epd),
-        ("firstMove", args.firstMove),
+        ("openingMoves", args.openingMoves),
         ("excludeFrom", args.excludeFrom),
         ("excludeTo", args.excludeTo),
         ("excludeCaptures", args.excludeCaptures),
