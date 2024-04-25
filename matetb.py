@@ -127,6 +127,7 @@ class MateTB:
         print("Create the allowed part of the game tree ...")
         count = 0
         queue = collections.deque([self.root_pos])
+        san = [set(), set()]
         while queue:
             fen = queue.popleft()
             if fen in self.fen2index:
@@ -149,6 +150,9 @@ class MateTB:
                 if onlyMove and move != chess.Move.from_uci(onlyMove):
                     continue
                 if self.allowed_move(board, move):
+                    if board.san(move) not in san[board.turn]:
+                        san[board.turn].add(board.san(move))
+                        print(f"\n san[{board.turn}] = {sorted(san[board.turn])}")
                     board.push(move)
                     queue.append(board.epd())
                     board.pop()
