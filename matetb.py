@@ -47,11 +47,15 @@ class MateTB:
             if args.excludeAllowingMoves is None
             else args.excludeAllowingMoves.split()
         )
+        self.excludeAllowingSANs = (
+            [] if args.excludeAllowingSANs is None else args.excludeAllowingSANs.split()
+        )
         self.needToGenerateResponses = (
             args.excludeAllowingCapture
             or self.BBexcludeAllowingFrom
             or self.BBexcludeAllowingTo
             or self.excludeAllowingMoves
+            or self.excludeAllowingSANs
         )
         self.verbose = args.verbose
         self.prepare_opening_book(args.openingMoves)
@@ -115,6 +119,7 @@ class MateTB:
                     or (self.BBexcludeAllowingFrom & (1 << m.from_square))
                     or (self.BBexcludeAllowingTo & (1 << m.to_square))
                     or (m.uci() in self.excludeAllowingMoves)
+                    or (board.san(m) in self.excludeAllowingSANs)
                 ):
                     board.pop()
                     return False
@@ -281,6 +286,7 @@ def fill_exclude_options(args):
         or args.excludeAllowingFrom
         or args.excludeAllowingTo
         or args.excludeAllowingMoves
+        or args.excludeAllowingSANs
     ):
         return
     epd = " ".join(args.epd.split()[:4])
@@ -442,6 +448,15 @@ def fill_exclude_options(args):
         args.excludeTo = "h1"
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "b3 h5 h4"
+    elif epd in [
+        "8/p7/8/p7/b3Q3/K7/p1r5/rk6 w - -",  # bm #10
+        "8/p7/8/p7/b3Q3/K6p/p1r5/rk6 w - -",  # bm #22
+    ]:
+        args.excludeFrom = "a3"
+        args.excludeTo = "a1"
+        args.excludeAllowingCapture = True
+        args.excludeAllowingFrom = "a1 h1"
+        args.excludeAllowingSANs = "Kb1 Kc2 Kd1 Kd2"
 
 
 if __name__ == "__main__":
@@ -495,7 +510,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--excludeAllowingMoves",
-        help="Space separated moves that opponent should not be allowed to make in reply to our move.",
+        help="Space separated UCI moves that opponent should not be allowed to make in reply to our move.",
+    )
+    parser.add_argument(
+        "--excludeAllowingSANs",
+        help="Space separated SAN moves that opponent should not be allowed to make in reply to our move.",
     )
     parser.add_argument(
         "--outFile",
@@ -522,6 +541,7 @@ if __name__ == "__main__":
         ("excludeAllowingFrom", args.excludeAllowingFrom),
         ("excludeAllowingTo", args.excludeAllowingTo),
         ("excludeAllowingMoves", args.excludeAllowingMoves),
+        ("excludeAllowingSANs", args.excludeAllowingSANs),
     ]
     options = " ".join(
         [
