@@ -451,6 +451,7 @@ def fill_exclude_options(args):
     elif epd in [
         "8/p7/8/p7/b3Q3/K7/p1r5/rk6 w - -",  # bm #10
         "8/p7/8/p7/b3Q3/K6p/p1r5/rk6 w - -",  # bm #22
+        "8/p6p/7p/p6p/b3Q2p/K6p/p1r5/rk6 w - -",  # bm #120
     ]:
         args.excludeFrom = "a3"
         args.excludeTo = "a1"
