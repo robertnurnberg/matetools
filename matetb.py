@@ -153,7 +153,7 @@ class MateTB:
             for move in board.legal_moves:
                 if onlyMove and move != chess.Move.from_uci(onlyMove):
                     continue
-                if self.allowed_move(board, move):
+                if onlyMove or self.allowed_move(board, move):
                     board.push(move)
                     queue.append(board.epd())
                     board.pop()
