@@ -21,6 +21,8 @@ class MateTB:
         self.mating_side = not playing_side if " bm #-" in args.epd else playing_side
         print(f"Restrict moves for {'WHITE' if self.mating_side else 'BLACK'} side.")
 
+        self.excludeSANs = [] if args.excludeSANs is None else args.excludeSANs.split()
+
         self.BBexcludeFrom = self.BBexcludeTo = 0
         if args.excludeFrom:
             for square in args.excludeFrom.split():
@@ -60,15 +62,39 @@ class MateTB:
         self.verbose = args.verbose
         self.prepare_opening_book(args.openingMoves)
 
-    def prepare_opening_book(self, lines):
+    def prepare_opening_book(self, openingMoves):
         self.openingBook = {}
-        if lines is None:
+        if openingMoves is None:
             return
         print("Preparing the opening book ...")
-        for line in lines.split(","):
-            moves = line.split()
+        lines = []
+        for line in openingMoves.split(","):
+            stars = line.count("*")
+            if stars == 1:
+                before, _, after = line.partition("*")
+                board = chess.Board(self.root_pos)
+                before = before.split()
+                for move in before:
+                    board.push(chess.Move.from_uci(move))
+                length = len(before) + 1
+                for move in board.legal_moves:
+                    if not before + [str(move)] in [l[:length] for l in lines]:
+                        lines.append(before + [str(move)] + after.split())
+            elif stars == 0:
+                lines.append(line.split())
+            else:
+                print(f"More than one '*' in line {line}.")
+                exit(1)
+        for moves in lines:
             if self.verbose >= 3:
                 print(f"Processing line {' '.join(moves)} ...")
+                if self.verbose >= 4:
+                    print(
+                        f"https://chessdb.cn/queryc_en/?{self.root_pos} moves {' '.join(moves)}\n".replace(
+                            " ", "_"
+                        )
+                    )
+
             board = chess.Board(self.root_pos)
             for move in moves:
                 if board.turn == self.mating_side:
@@ -97,6 +123,8 @@ class MateTB:
         """restrict the mating side's candidate moves, to reduce the overall tree size"""
         if not board.turn == self.mating_side:
             return True
+        if board.san(move) in self.excludeSANs:
+            return False
         if self.BBexcludeFrom & (1 << move.from_square):
             return False
         if self.BBexcludeTo & (1 << move.to_square):
@@ -277,6 +305,7 @@ def fill_exclude_options(args):
     """For some known EPDs, this defines the right exclude commands."""
     if (
         args.openingMoves
+        or args.excludeSANs
         or args.excludeFrom
         or args.excludeTo
         or args.excludeCaptures
@@ -443,7 +472,13 @@ def fill_exclude_options(args):
         "8/6Pp/8/8/7p/5r2/4Kpkp/6br w - -",  # bm #19
         "8/1p4Pp/1p6/1p6/1p5p/5r2/4Kpkp/6br w - -",  # bm #77
     ]:
-        args.openingMoves = "g7g8q g2h3 e2f1, g7g8q f3g3 g8d5 g3f3 d5f3, g7g8q f3g3 g8d5 g2h3 d5e6 g3g4 e2f1, g7g8q f3g3 g8d5 g2h3 d5e6 h3g2 e6e4 g3f3 e4f3, g7g8q f3g3 g8d5 g2h3 d5e6 h3g2 e6e4 g2h3 e2f1"
+        args.openingMoves = (
+            "g7g8q g2h3 e2f1, "
+            + "g7g8q f3g3 g8d5 g3f3 d5f3, "
+            + "g7g8q f3g3 g8d5 g2h3 d5e6 g3g4 e2f1, "
+            + "g7g8q f3g3 g8d5 g2h3 d5e6 h3g2 e6e4 g3f3 e4f3, "
+            + "g7g8q f3g3 g8d5 g2h3 d5e6 h3g2 e6e4 g2h3 e2f1"
+        )
         args.excludeFrom = "f1"
         args.excludeTo = "h1"
         args.excludeAllowingCapture = True
@@ -458,6 +493,27 @@ def fill_exclude_options(args):
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "a1 h1"
         args.excludeAllowingSANs = "Kb1 Kc2 Kd1 Kd2"
+    elif epd == "8/5P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -":  # bm #10
+        args.openingMoves = (
+            "f7f8q g1f3 f8f3 f1e1 f3g3 e1f1 g3g1, "
+            + "f7f8q f1e1 f8a3 g1f3 a3f3 * f3g3 e1f1 g3g1, "
+            + "f7f8q f1e1 f8a3 g1h3 a3h3 e1f2 h3g3 f2f1 g3g1, "
+            + "f7f8q f1e1 f8a3 g1h3 a3h3 * h3g3 e1f1 g3g1, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 g1f3 f8f3 f1e1 f3g3 e1f1 g3g1, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8f4 g1f3 f4f3 d1c1 f3g3, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8f4 g1f3 f4f3 * f3g3 e1f1 g3g1, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8f4 g1h3 f4g3, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8f4 * f4g3, "
+            + "f7f8q f1e1 f8a3 e1f2 a3g3, "
+            + "f7f8q f1e1 f8a3 d1c1 a3g3, "
+            + "f7f8q f1e1 f8a3 b1c1 a3g3, "
+            + "f7f8q f1e1 f8a3 * a3g3 e1f1 g3g1"
+        )
+        args.excludeSANs = "Kh1 Kg1 Kg2 Kg3 Kg4 Kh4"
+        args.excludeTo = "b2 c2 d2 e2"
+        args.excludeAllowingCapture = True
+        args.excludeAllowingFrom = "b2 c2 d2 e2"
+        args.excludeAllowingSANs = "Ke3 Kf3 Kg1 Kg2 Kg3"
 
 
 if __name__ == "__main__":
@@ -472,7 +528,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--openingMoves",
-        help="Comma separated opening lines in UCI notation that specify the mating side's moves.",
+        help="Comma separated opening lines in UCI notation that specify the mating side's moves. In each line a single placeholder '*' is allowed for the defending side.",
+    )
+    parser.add_argument(
+        "--excludeSANs",
+        help="Space separated SAN moves that are not allowed.",
     )
     parser.add_argument(
         "--excludeFrom",
@@ -533,6 +593,7 @@ if __name__ == "__main__":
     options = [
         ("epd", args.epd),
         ("openingMoves", args.openingMoves),
+        ("excludeSANs", args.excludeSANs),
         ("excludeFrom", args.excludeFrom),
         ("excludeTo", args.excludeTo),
         ("excludeCaptures", args.excludeCaptures),
