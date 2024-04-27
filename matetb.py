@@ -150,13 +150,16 @@ class MateTB:
                 print(f"Picked move {onlyMove} for {fen}.")
                 if self.verbose >= 4:
                     print(f"Remaining book: {self.openingBook}.")
+            children = [] # it seems that this does not reduce the tree size
             for move in board.legal_moves:
                 if onlyMove and move != chess.Move.from_uci(onlyMove):
                     continue
                 if onlyMove or self.allowed_move(board, move):
                     board.push(move)
-                    queue.append(board.epd())
+                    child = board.epd()
+                    children = [child] if board.is_checkmate() else children + [child]
                     board.pop()
+                queue.extend(children)
         print(f"Found {len(self.fen2index)} positions in {time.time()-tic:.2f}s")
 
     def connect_children(self):
