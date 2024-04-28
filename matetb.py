@@ -493,17 +493,28 @@ def fill_exclude_options(args):
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "a1 h1"
         args.excludeAllowingSANs = "Kb1 Kc2 Kd1 Kd2"
-    elif epd == "8/5P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -":  # bm #10
+    elif epd in [
+        "8/5P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #10
+        "8/3p1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #28
+        "8/2pp1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #48
+        "8/pppp1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #93
+    ]:
         args.openingMoves = (
             "f7f8q g1f3 f8f3 f1e1 f3g3 e1f1 g3g1, "
             + "f7f8q f1e1 f8a3 g1f3 a3f3 * f3g3 e1f1 g3g1, "
             + "f7f8q f1e1 f8a3 g1h3 a3h3 e1f2 h3g3 f2f1 g3g1, "
             + "f7f8q f1e1 f8a3 g1h3 a3h3 * h3g3 e1f1 g3g1, "
             + "f7f8q f1e1 f8a3 e1f1 a3f8 g1f3 f8f3 f1e1 f3g3 e1f1 g3g1, "
-            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8f4 g1f3 f4f3 d1c1 f3g3, "
-            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8f4 g1f3 f4f3 * f3g3 e1f1 g3g1, "
-            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8f4 g1h3 f4g3, "
-            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8f4 * f4g3, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8c5 g1f3 h2g3 d1c1 c5f2 e1d1 f2f3 d1e1 f3h1, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8c5 g1f3 h2g3 f3d4 c5d4 e1f1 d4f2, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8c5 g1f3 h2g3 f3d4 c5d4 * d4g1, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8c5 g1f3 h2g3 * c5f2, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8c5 g1h3 h2h3 e1f1 c5f5 f1g1 f5g4 g1f2 g4g3 f2f1 g3g2 f1e1 g2g1, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8c5 g1h3 h2h3 e1f1 c5f5 f1e1 f5g6 e1f2 g6g3 f2f1 g3g2 f1e1 g2g1, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8c5 g1h3 h2h3 e1f1 c5f5 f1e1 f5g6 e1f1 g6g2 f1e1 g2g1, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8c5 g1h3 h2h3 e1f1 c5f5 f1e1 f5g6 * g6g1, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8c5 g1h3 h2h3 * c5g1, "
+            + "f7f8q f1e1 f8a3 e1f1 a3f8 f1e1 f8c5 * c5g1, "
             + "f7f8q f1e1 f8a3 e1f2 a3g3, "
             + "f7f8q f1e1 f8a3 d1c1 a3g3, "
             + "f7f8q f1e1 f8a3 b1c1 a3g3, "
@@ -513,7 +524,7 @@ def fill_exclude_options(args):
         args.excludeTo = "b2 c2 d2 e2"
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "b2 c2 d2 e2"
-        args.excludeAllowingSANs = "Ke3 Kf3 Kg1 Kg2 Kg3"
+        args.excludeAllowingSANs = "Ke3 Kf3 Kh1 Kg2 Kh2"
 
 
 if __name__ == "__main__":
