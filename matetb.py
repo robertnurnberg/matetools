@@ -494,10 +494,10 @@ def fill_exclude_options(args):
         args.excludeAllowingFrom = "a1 h1"
         args.excludeAllowingSANs = "Kb1 Kc2 Kd1 Kd2"
     elif epd in [
-        "8/5P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #10 (w/ 7902 positions)
-        "8/3p1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #28 (w/ 46892 positions)
-        "8/2pp1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #48 (w/, 270060 positions)
-        "8/pppp1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #93 (not yet)
+        "8/5P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #10
+        "8/3p1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #28
+        "8/2pp1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #48
+        "8/pppp1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #93
     ]:
         args.openingMoves = (
             "f7f8q g1f3 f8f3 f1e1 f3g3 e1f1 g3g1, "
