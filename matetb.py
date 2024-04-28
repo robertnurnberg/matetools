@@ -619,6 +619,6 @@ if __name__ == "__main__":
     print(f"Running with options {options}")
     mtb = MateTB(args)
     mtb.create_tb()
+    mtb.output()
     if args.outFile:
         mtb.write_tb(args.outFile)
-    mtb.output()
