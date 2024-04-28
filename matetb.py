@@ -494,8 +494,9 @@ def fill_exclude_options(args):
         args.excludeAllowingFrom = "a1 h1"
         args.excludeAllowingSANs = "Kb1 Kc2 Kd1 Kd2"
     elif epd in [
-        "8/5P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #10
-        "8/3p1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -", # bm #28 (not yet)
+        "8/5P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #10 (w/ 7817 positions)
+        "8/3p1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -", # bm #28 (only #30, 46793 positions, because Qc4 is better than Qf4 in one line)
+        "8/2pp1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -", # bm #48 (only #50, 269952 positions)
         "8/pppp1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #93 (not yet)
     ]:
         args.openingMoves = (
@@ -517,7 +518,7 @@ def fill_exclude_options(args):
         args.excludeTo = "b2 c2 d2 e2"
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "b2 c2 d2 e2"
-        args.excludeAllowingSANs = "Ke3 Kf3 Kg1 Kg2 Kg3"
+        args.excludeAllowingSANs = "Ke3 Kf3 Kh1 Kg2 Kh2"
 
 
 if __name__ == "__main__":
