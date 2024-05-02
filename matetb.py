@@ -107,7 +107,11 @@ class MateTB:
                             exit(1)
                     else:
                         self.openingBook[fen] = move
-                board.push(chess.Move.from_uci(move))
+                m = chess.Move.from_uci(move)
+                if m not in board.legal_moves:
+                    print(f"Illegal move {m.uci()} in position {fen}.")
+                    exit(1)
+                board.push(m)
         print(
             f"Done. The opening book contains {len(self.openingBook)} positions/moves."
         )
