@@ -178,13 +178,27 @@ class MateTB:
 
         return True
 
+    def analyse_move(self, board, move):
+        """decide if to analyse the position resulting from losing side's move"""
+        if board.turn == self.mating_side:
+            return False
+        if self.analyseAll:
+            return True
+        if board.san(move) in self.analyseSANs:
+            return True
+        if self.BBanalyseFrom & (1 << move.from_square):
+            return True
+        if self.BBanalyseTo & (1 << move.to_square):
+            return True
+        return False
+
     def initialize_tb(self):
         tic = time.time()
         print("Create the allowed part of the game tree ...")
         count = 0
-        queue = collections.deque([self.root_pos])
+        queue = collections.deque([(self.root_pos, False)])
         while queue:
-            fen = queue.popleft()
+            fen, ana = queue.popleft()
             if fen in self.fen2index:
                 continue
             self.fen2index[fen] = count
@@ -193,6 +207,8 @@ class MateTB:
                 print(f"Progress: {count}", end="\r")
             board = chess.Board(fen)
             score = -VALUE_MATE if board.is_checkmate() else 0
+            if score == 0 and self.engine and ana:
+                pass
             self.tb.append([score, []])
             if score:
                 continue
@@ -206,7 +222,8 @@ class MateTB:
                     continue
                 if onlyMove or self.allowed_move(board, move):
                     board.push(move)
-                    queue.append(board.epd())
+                    analyse = self.engine and self.analyse_move(board, move)
+                    queue.append((board.epd(), ana))
                     board.pop()
         print(f"Found {len(self.fen2index)} positions in {time.time()-tic:.2f}s")
 
