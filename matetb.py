@@ -66,6 +66,17 @@ class MateTB:
             d = None if args.limitDepth is None else int(args.limitDepth)
             t = None if args.limitTime is None else float(args.limitTime)
             self.limit = chess.engine.Limit(nodes=n, depth=d, time=t)
+            self.analyseAll = args.analyseAll
+            self.analyseSANs = (
+                [] if args.analyseSANs is None else args.analyseSANs.split()
+            )
+            self.BBanalyseFrom = self.BBanalyseTo = 0
+            if args.analyseFrom:
+                for square in args.analyseFrom.split():
+                    self.BBanalyseFrom |= chess.BB_SQUARES[chess.parse_square(square)]
+            if args.analyseTo:
+                for square in args.analyseTo.split():
+                    self.BBanalyseTo |= chess.BB_SQUARES[chess.parse_square(square)]
 
         self.verbose = args.verbose
         self.prepare_opening_book(args.openingMoves)
@@ -606,12 +617,29 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--engine",
-        help="Optional name of the engine binary to cut off moves by the losing side.",
+        help="Optional name of the engine binary to analyse positions with the mating side to move to cut off parts of the game tree.",
     )
     parser.add_argument("--limitNodes", help="engine's nodes limit per position")
     parser.add_argument("--limitDepth", help="engine's depth limit per position")
     parser.add_argument(
         "--limitTime", help="engine's time limit (in seconds) per position"
+    )
+    parser.add_argument(
+        "--analyseAll",
+        action="store_true",
+        help="Analyse all the positions where the mating side is to move.",
+    )
+    parser.add_argument(
+        "--analyseSANs",
+        help="Space separated SAN moves of the losing side that are to be analysed by the engine.",
+    )
+    parser.add_argument(
+        "--analyseFrom",
+        help="Moves by the losing side starting from here are to be analysed.",
+    )
+    parser.add_argument(
+        "--analyseTo",
+        help="Moves by the losing side going here are to be analysed.",
     )
     parser.add_argument(
         "-v",
@@ -640,6 +668,10 @@ if __name__ == "__main__":
         ("limitNodes", args.limitNodes),
         ("limitDepth", args.limitDepth),
         ("limitTime", args.limitTime),
+        ("analyseAll", args.analyseAll),
+        ("analyseSANs", args.analyseSANs),
+        ("analyseFrom", args.analyseFrom),
+        ("analyseTo", args.analyseTo),
     ]
     options = " ".join(
         [
