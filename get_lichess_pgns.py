@@ -37,7 +37,7 @@ parser.add_argument(
     "--db",
     choices=["lichess", "master", "lichess+master"],
     default="lichess+master",
-    help="lichess db to search in, search stop after a game was found",
+    help="lichess db(s) to search in",
 )
 parser.add_argument(
     "-v",
