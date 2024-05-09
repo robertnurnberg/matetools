@@ -220,23 +220,23 @@ if __name__ == "__main__":
         "--depthMax",
         type=int,
         default=30,
-        help="upper cap for search depth for backwards analysis",
+        help="upper cap for search depth for backward analysis",
     )
     parser.add_argument(
         "--nodesFill",
         type=str,
-        help="nodes limit per position for backwards analysis (hash filling)",
+        help="nodes limit per position for backward analysis (hash filling)",
     )
     parser.add_argument(
         "--timeFill",
         type=float,
-        help="time limit (in seconds) per position for backwards analysis",
+        help="time limit (in seconds) per position for backward analysis",
     )
     parser.add_argument(
         "--mateFill",
         choices=["all", "won", "None"],
         default="None",
-        help="use mate limit for backwards analysis (overrides all other limits, may lead to infinite analysis for incorrect PVs)",
+        help="use mate limit for backward analysis (overrides all other limits, may lead to infinite analysis for incorrect PVs)",
     )
     parser.add_argument(
         "--longestPV",
