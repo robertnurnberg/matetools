@@ -189,7 +189,7 @@ class MateTB:
 
     def analyse_move(self, board, move):
         """decide if to analyse the position resulting from losing side's move"""
-        if board.turn == self.mating_side:
+        if board.turn != self.mating_side:
             return False
         if self.analyseAll:
             return True
@@ -226,7 +226,7 @@ class MateTB:
                         score = mate2score(m)
                         if self.verbose >= 3:
                             print(
-                                f'Found mate {m} analysing "{board.epd()}", setting score to {score}.'
+                                f'Found mate {m} analysing "{board.epd()}", setting TB score to {score}.'
                             )
             self.tb.append([score, []])
             if score:
@@ -353,10 +353,10 @@ class MateTB:
             if score:
                 score_str += f" mate {score2mate(score)}"
             pvstr = " ".join(pv)
+            if pv[-1][0] == ";":
+                pvstr = " ".join(pv[:-1])
             print(f"multipv {count+1} score {score_str} pv {pvstr}")
             if self.verbose >= 2:
-                if pv[-1][0] == ";":
-                    pvstr = " ".join(pv[:-1])
                 print(
                     f"https://chessdb.cn/queryc_en/?{self.root_pos} moves {pvstr}\n".replace(
                         " ", "_"
