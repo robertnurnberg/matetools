@@ -75,7 +75,7 @@ class Analyser:
                     f'Analysing "{board.epd()}" (after move {board.peek().uci()}) to {limit}.',
                     flush=True,
                 )
-                info = self.engine.analyse(board, limit, game=board)
+                info = self.engine.analyse(board, limit)
                 if "score" in info:
                     score = info["score"].pov(board.turn)
                     depth = info["depth"] if "depth" in info else None
@@ -121,7 +121,7 @@ class Analyser:
                 f'Analysing "{board.epd()}" to {limit}.',
                 flush=True,
             )
-            info = self.engine.analyse(board, limit, game=board)
+            info = self.engine.analyse(board, limit)
             m, pv = None, None
             if "score" in info:
                 score = info["score"].pov(board.turn)
