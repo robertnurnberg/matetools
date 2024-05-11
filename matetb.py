@@ -189,7 +189,7 @@ class MateTB:
 
     def analyse_move(self, board, move):
         """decide if to analyse the position resulting from losing side's move"""
-        if board.turn != self.mating_side:
+        if board.turn == self.mating_side:
             return False
         if self.analyseAll:
             return True
@@ -240,8 +240,8 @@ class MateTB:
                 if onlyMove and move != chess.Move.from_uci(onlyMove):
                     continue
                 if onlyMove or self.allowed_move(board, move):
-                    board.push(move)
                     analyse = self.engine and self.analyse_move(board, move)
+                    board.push(move)
                     queue.append((board.epd(), analyse))
                     board.pop()
         print(f"Found {len(self.fen2index)} positions in {time.time()-tic:.2f}s")
