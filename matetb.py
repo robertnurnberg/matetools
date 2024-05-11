@@ -11,6 +11,14 @@ def score2mate(score):
     return None
 
 
+def mate2score(m):
+    if m > 0:
+        return VALUE_MATE - 2 * m + 1
+    if m < 0:
+        return -VALUE_MATE - 2 * m
+    return None
+
+
 class MateTB:
     def __init__(self, args):
         self.fen2index = {}  # maps FENs from game tree to their index idx
@@ -62,6 +70,7 @@ class MateTB:
 
         self.engine = args.engine
         if self.engine:
+            self.engine = chess.engine.SimpleEngine.popen_uci(self.engine)
             n = None if args.limitNodes is None else int(args.limitNodes)
             d = None if args.limitDepth is None else int(args.limitDepth)
             t = None if args.limitTime is None else float(args.limitTime)
@@ -208,8 +217,17 @@ class MateTB:
             board = chess.Board(fen)
             score = -VALUE_MATE if board.is_checkmate() else 0
             if score == 0 and self.engine and ana:
+                if self.verbose >= 4:
+                    print(f'Analysing "{board.epd()}" to {self.limit}.')
                 info = self.engine.analyse(board, self.limit)
-                # TODO: continue
+                if "score" in info:
+                    m = info["score"].pov(board.turn).mate()
+                    if m:
+                        score = mate2score(m)
+                        if self.verbose >= 3:
+                            print(
+                                f'Found mate {m} analysing "{board.epd()}", setting score to {score}.'
+                            )
             self.tb.append([score, []])
             if score:
                 continue
@@ -224,7 +242,7 @@ class MateTB:
                 if onlyMove or self.allowed_move(board, move):
                     board.push(move)
                     analyse = self.engine and self.analyse_move(board, move)
-                    queue.append((board.epd(), ana))
+                    queue.append((board.epd(), analyse))
                     board.pop()
         print(f"Found {len(self.fen2index)} positions in {time.time()-tic:.2f}s")
 
@@ -340,6 +358,10 @@ class MateTB:
                         " ", "_"
                     )
                 )
+
+    def quit(self):
+        if self.engine:
+            self.engine.quit()
 
 
 def fill_exclude_options(args):
@@ -708,3 +730,4 @@ if __name__ == "__main__":
     mtb.output()
     if args.outFile:
         mtb.write_tb(args.outFile)
+    mtb.quit()
