@@ -305,14 +305,18 @@ class MateTB:
         moves = []
         for move in board.legal_moves:
             board.push(move)
-            fen = board.epd()
-            idx = self.fen2index.get(fen, None)
+            idx = self.fen2index.get(board.epd(), None)
             score = self.tb[idx][0] if idx is not None else None
             if score not in [0, None]:
                 score = -score + (1 if score > 0 else -1)
             moves.append((score, move))
             board.pop()
-        _, bestmove = max(moves, key=lambda t: float("-inf") if t[0] is None else t[0])
+        bestscore, bestmove = max(
+            moves, key=lambda t: float("-inf") if t[0] is None else t[0]
+        )
+        if bestscore is None:
+            assert self.engine, "This should never happen."
+            return ["; PV is short"]
         board.push(bestmove)
         return [str(bestmove)] + self.obtain_pv(board)
 
@@ -351,7 +355,7 @@ class MateTB:
             pvstr = " ".join(pv)
             print(f"multipv {count+1} score {score_str} pv {pvstr}")
             if self.verbose >= 2:
-                if pv[-1] == "; draw by 50mr":
+                if pv[-1][0] == ";":
                     pvstr = " ".join(pv[:-1])
                 print(
                     f"https://chessdb.cn/queryc_en/?{self.root_pos} moves {pvstr}\n".replace(
