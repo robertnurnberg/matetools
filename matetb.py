@@ -208,7 +208,8 @@ class MateTB:
             board = chess.Board(fen)
             score = -VALUE_MATE if board.is_checkmate() else 0
             if score == 0 and self.engine and ana:
-                pass
+                info = self.engine.analyse(board, self.limit)
+                # TODO: continue
             self.tb.append([score, []])
             if score:
                 continue
