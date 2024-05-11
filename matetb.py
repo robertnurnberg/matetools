@@ -251,6 +251,8 @@ class MateTB:
         print(f"Connect child nodes ...")
         dim = len(self.fen2index)
         for fen, idx in self.fen2index.items():
+            if self.tb[idx][0]:  # do not add children to mate nodes
+                continue
             board = chess.Board(fen)
             for move in board.legal_moves:
                 board.push(move)
