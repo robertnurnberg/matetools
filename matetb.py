@@ -671,7 +671,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--analyseAll",
         action="store_true",
-        help="Analyse all the positions where the mating side is to move.",
+        help="Analyse all the positions (apart from root) where the mating side is to move.",
     )
     parser.add_argument(
         "--analyseSANs",
