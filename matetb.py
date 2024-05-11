@@ -1,4 +1,4 @@
-import argparse, chess, collections, time
+import argparse, chess, chess.engine, collections, time
 
 VALUE_MATE = 30000
 
@@ -8,6 +8,14 @@ def score2mate(score):
         return (VALUE_MATE - score + 1) // 2
     if score < 0:
         return -(VALUE_MATE + score) // 2
+    return None
+
+
+def mate2score(m):
+    if m > 0:
+        return VALUE_MATE - 2 * m + 1
+    if m < 0:
+        return -VALUE_MATE - 2 * m
     return None
 
 
@@ -59,6 +67,26 @@ class MateTB:
             or self.excludeAllowingMoves
             or self.excludeAllowingSANs
         )
+
+        self.engine = args.engine
+        if self.engine:
+            self.engine = chess.engine.SimpleEngine.popen_uci(self.engine)
+            n = None if args.limitNodes is None else int(args.limitNodes)
+            d = None if args.limitDepth is None else int(args.limitDepth)
+            t = None if args.limitTime is None else float(args.limitTime)
+            self.limit = chess.engine.Limit(nodes=n, depth=d, time=t)
+            self.analyseAll = args.analyseAll
+            self.analyseSANs = (
+                [] if args.analyseSANs is None else args.analyseSANs.split()
+            )
+            self.BBanalyseFrom = self.BBanalyseTo = 0
+            if args.analyseFrom:
+                for square in args.analyseFrom.split():
+                    self.BBanalyseFrom |= chess.BB_SQUARES[chess.parse_square(square)]
+            if args.analyseTo:
+                for square in args.analyseTo.split():
+                    self.BBanalyseTo |= chess.BB_SQUARES[chess.parse_square(square)]
+
         self.verbose = args.verbose
         self.prepare_opening_book(args.openingMoves)
 
@@ -159,13 +187,27 @@ class MateTB:
 
         return True
 
+    def analyse_move(self, board, move):
+        """decide if to analyse the position resulting from losing side's move"""
+        if board.turn == self.mating_side:
+            return False
+        if self.analyseAll:
+            return True
+        if board.san(move) in self.analyseSANs:
+            return True
+        if self.BBanalyseFrom & (1 << move.from_square):
+            return True
+        if self.BBanalyseTo & (1 << move.to_square):
+            return True
+        return False
+
     def initialize_tb(self):
         tic = time.time()
         print("Create the allowed part of the game tree ...")
         count = 0
-        queue = collections.deque([self.root_pos])
+        queue = collections.deque([(self.root_pos, False)])
         while queue:
-            fen = queue.popleft()
+            fen, ana = queue.popleft()
             if fen in self.fen2index:
                 continue
             self.fen2index[fen] = count
@@ -174,6 +216,18 @@ class MateTB:
                 print(f"Progress: {count}", end="\r")
             board = chess.Board(fen)
             score = -VALUE_MATE if board.is_checkmate() else 0
+            if score == 0 and self.engine and ana:
+                if self.verbose >= 4:
+                    print(f'Analysing "{board.epd()}" to {self.limit}.')
+                info = self.engine.analyse(board, self.limit)
+                if "score" in info:
+                    m = info["score"].pov(board.turn).mate()
+                    if m:
+                        score = mate2score(m)
+                        if self.verbose >= 3:
+                            print(
+                                f'Found mate {m} analysing "{board.epd()}", setting TB score to {score}.'
+                            )
             self.tb.append([score, []])
             if score:
                 continue
@@ -186,8 +240,9 @@ class MateTB:
                 if onlyMove and move != chess.Move.from_uci(onlyMove):
                     continue
                 if onlyMove or self.allowed_move(board, move):
+                    analyse = self.engine and self.analyse_move(board, move)
                     board.push(move)
-                    queue.append(board.epd())
+                    queue.append((board.epd(), analyse))
                     board.pop()
         print(f"Found {len(self.fen2index)} positions in {time.time()-tic:.2f}s")
 
@@ -196,6 +251,8 @@ class MateTB:
         print(f"Connect child nodes ...")
         dim = len(self.fen2index)
         for fen, idx in self.fen2index.items():
+            if self.tb[idx][0]:  # do not add children to mate nodes
+                continue
             board = chess.Board(fen)
             for move in board.legal_moves:
                 board.push(move)
@@ -250,14 +307,18 @@ class MateTB:
         moves = []
         for move in board.legal_moves:
             board.push(move)
-            fen = board.epd()
-            idx = self.fen2index.get(fen, None)
+            idx = self.fen2index.get(board.epd(), None)
             score = self.tb[idx][0] if idx is not None else None
             if score not in [0, None]:
                 score = -score + (1 if score > 0 else -1)
             moves.append((score, move))
             board.pop()
-        _, bestmove = max(moves, key=lambda t: float("-inf") if t[0] is None else t[0])
+        bestscore, bestmove = max(
+            moves, key=lambda t: float("-inf") if t[0] is None else t[0]
+        )
+        if bestscore is None:
+            assert self.engine, "This should never happen."
+            return ["; PV is short"]
         board.push(bestmove)
         return [str(bestmove)] + self.obtain_pv(board)
 
@@ -294,15 +355,19 @@ class MateTB:
             if score:
                 score_str += f" mate {score2mate(score)}"
             pvstr = " ".join(pv)
+            if pv[-1][0] == ";":
+                pvstr = " ".join(pv[:-1])
             print(f"multipv {count+1} score {score_str} pv {pvstr}")
             if self.verbose >= 2:
-                if pv[-1] == "; draw by 50mr":
-                    pvstr = " ".join(pv[:-1])
                 print(
                     f"https://chessdb.cn/queryc_en/?{self.root_pos} moves {pvstr}\n".replace(
                         " ", "_"
                     )
                 )
+
+    def quit(self):
+        if self.engine:
+            self.engine.quit()
 
 
 def fill_exclude_options(args):
@@ -597,6 +662,32 @@ if __name__ == "__main__":
         help="Optional output file for the TB.",
     )
     parser.add_argument(
+        "--engine",
+        help="Optional name of the engine binary to analyse positions with the mating side to move to cut off parts of the game tree.",
+    )
+    parser.add_argument("--limitNodes", help="engine's nodes limit per position")
+    parser.add_argument("--limitDepth", help="engine's depth limit per position")
+    parser.add_argument(
+        "--limitTime", help="engine's time limit (in seconds) per position"
+    )
+    parser.add_argument(
+        "--analyseAll",
+        action="store_true",
+        help="Analyse all the positions (apart from root) where the mating side is to move.",
+    )
+    parser.add_argument(
+        "--analyseSANs",
+        help="Space separated SAN moves of the losing side that are to be analysed by the engine.",
+    )
+    parser.add_argument(
+        "--analyseFrom",
+        help="Moves by the losing side starting from here are to be analysed.",
+    )
+    parser.add_argument(
+        "--analyseTo",
+        help="Moves by the losing side going here are to be analysed.",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="count",
@@ -619,6 +710,14 @@ if __name__ == "__main__":
         ("excludeAllowingTo", args.excludeAllowingTo),
         ("excludeAllowingMoves", args.excludeAllowingMoves),
         ("excludeAllowingSANs", args.excludeAllowingSANs),
+        ("engine", args.engine),
+        ("limitNodes", args.limitNodes),
+        ("limitDepth", args.limitDepth),
+        ("limitTime", args.limitTime),
+        ("analyseAll", args.analyseAll),
+        ("analyseSANs", args.analyseSANs),
+        ("analyseFrom", args.analyseFrom),
+        ("analyseTo", args.analyseTo),
     ]
     options = " ".join(
         [
@@ -637,3 +736,4 @@ if __name__ == "__main__":
     mtb.output()
     if args.outFile:
         mtb.write_tb(args.outFile)
+    mtb.quit()
