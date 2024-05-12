@@ -322,13 +322,41 @@ class MateTB:
         board.push(bestmove)
         return [str(bestmove)] + self.obtain_pv(board)
 
+    def lengthen_pv(self, pv):
+        pv = pv.split()
+        board = chess.Board(self.root_pos)
+        for move in pv:
+            board.push(chess.Move.from_uci(move))
+        idx = self.fen2index.get(board.epd(), None)
+        score = self.tb[idx][0] if idx is not None else None
+        assert score and score > 0, f'Unexpected score {score} for "board.epd()".'
+        newpv, it = [], 0
+        while len(newpv) != len(pv) + VALUE_MATE - score:
+            limit = chess.engine.Limit(depth=2 * it) if it else self.limit
+            if self.verbose >= 4:
+                print(f'Analysing "{board.epd()}" to {limit}.')
+            info = self.engine.analyse(board, limit)
+            if "score" in info:
+                m = info["score"].pov(board.turn).mate()
+                if m:
+                    if self.verbose >= 3:
+                        print(f'Found mate {m} analysing "{board.epd()}".')
+                    s = mate2score(m)
+                    if s > score:
+                        print("Found shorter mate at end of PV, cannot complete PV.")
+                        return
+                    if s == score and "pv" in info:
+                        newpv = pv + [m.uci() for m in info["pv"]]
+                        if self.verbose >= 4:
+                            print(f"New PV {newpv} has length {len(newpv)}.")
+        return newpv
+
     def output(self):
         board = chess.Board(self.root_pos)
         sp = []
         for move in board.legal_moves:
             board.push(move)
-            fen = board.epd()
-            idx = self.fen2index.get(fen, None)
+            idx = self.fen2index.get(board.epd(), None)
             score = self.tb[idx][0] if idx is not None else None
             if score not in [0, None]:
                 score = -score + (1 if score > 0 else -1)
@@ -344,6 +372,11 @@ class MateTB:
             print(f"{self.root_pos} bm #{score2mate(score)}; PV: {pv};")
         else:
             print("No mate found.")
+        if self.engine and pv[-13:] == "; PV is short":
+            print("\nLengthening PV ... ", flush=True)
+            pv = self.lengthen_pv(pv[:-13])
+            print("\nMatetrack with complete PV:")
+            print(f"{self.root_pos} bm #{score2mate(score)}; PV: {' '.join(pv)};")
         if self.verbose == 0:
             return
         print("\nMultiPV:")
@@ -352,10 +385,12 @@ class MateTB:
                 print(f"multipv {count+1} score None")
                 continue
             score_str = f"cp {score}"
+            pvstr = " ".join(pv)
             if score:
                 score_str += f" mate {score2mate(score)}"
-            pvstr = " ".join(pv)
-            if pv[-1][0] == ";":
+                if self.engine and pvstr[-13:] == "; PV is short":
+                    pvstr = " ".join(self.lengthen_pv(pvstr[:-13]))
+            elif pv[-1][0] == ";":
                 pvstr = " ".join(pv[:-1])
             print(f"multipv {count+1} score {score_str} pv {pvstr}")
             if self.verbose >= 2:
@@ -596,8 +631,7 @@ def fill_exclude_options(args):
         args.excludeAllowingSANs = "Ke3 Kf3 Kh1 Kg2 Kh2"
     elif epd in [
         "8/8/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #7
-        "8/7p/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #27 (not yet)
-        "8/5ppp/5p2/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #87 (not yet)
+        "8/7p/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #27
     ]:
         args.excludeSANs = "Nb6 Nb5 Nc4"
         args.excludeFrom = "a4 b3 d3"
@@ -605,7 +639,7 @@ def fill_exclude_options(args):
         if args.engine is None:
             print("For this position --engine needs to be specified.")
             exit(1)
-        args.analyseFrom = "c1 b2 a3 e2"
+        args.analyseAll = True
         if not (args.limitNodes or args.limitDepth or args.limitTime):
             args.limitDepth = "2"
 
