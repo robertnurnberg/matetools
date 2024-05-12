@@ -632,6 +632,7 @@ def fill_exclude_options(args):
     elif epd in [
         "8/8/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #7
         "8/7p/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #27
+        "8/5ppp/5p2/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #87
     ]:
         args.excludeSANs = "Nb6 Nb5 Nc4"
         args.excludeFrom = "a4 b3 d3"
