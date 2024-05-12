@@ -594,6 +594,20 @@ def fill_exclude_options(args):
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "b2 c2 d2 e2"
         args.excludeAllowingSANs = "Ke3 Kf3 Kh1 Kg2 Kh2"
+    elif epd in [
+        "8/8/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #7
+        "8/7p/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #27 (not yet)
+        "8/5ppp/5p2/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #87 (not yet)
+    ]:
+        args.excludeSANs = "Nb6 Nb5 Nc4"
+        args.excludeFrom = "a4 b3 d3"
+        args.excludeAllowingCapture = True
+        if args.engine is None:
+            print("For this position --engine needs to be specified.")
+            exit(1)
+        args.analyseFrom = "c1 b2 a3 e2"
+        if not (args.limitNodes or args.limitDepth or args.limitTime):
+            args.limitDepth = "2"
 
 
 if __name__ == "__main__":
