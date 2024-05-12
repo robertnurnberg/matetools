@@ -1,4 +1,4 @@
-import argparse, chess, chess.engine, os, re
+import argparse, chess, chess.engine, logging, os, re
 
 
 def pv_status(fen, mate, pv):
@@ -163,22 +163,22 @@ if __name__ == "__main__":
     parser.add_argument(
         "--epdFile",
         default="matetrackpv.epd",
-        help="file containing positions, their mate scores and possibly proven PVs",
+        help="File containing positions, their mate scores and possibly proven PVs.",
     )
     parser.add_argument(
         "--cdbFile",
         default="../cdbmatetrack/matetrack_cdbpv.epd",
-        help="file with conjectured mate PVs",
+        help="File with conjectured mate PVs.",
     )
     parser.add_argument(
         "--trust",
         action="store_true",
-        help="take the conjectured PVs as proven (use with care!)",
+        help="Take the conjectured PVs as proven, meaning the local analysis can simply lengthen the PVs (use with care!).",
     )
     parser.add_argument(
         "--outFile",
         default="provenpvs.epd",
-        help="output file for newly proven mates with their PVs",
+        help="Output file for newly proven mates with their PVs.",
     )
     parser.add_argument(
         "-v",
@@ -190,74 +190,78 @@ if __name__ == "__main__":
     parser.add_argument(
         "--engine",
         default="./stockfish",
-        help="name of the engine binary",
+        help="Name of the engine binary",
     )
     parser.add_argument(
         "--nodes",
         type=str,
-        help="nodes limit per position, default: 10**6 without other limits, otherwise None",
+        help="Nodes limit per position, default: 10**6 without other limits, otherwise None.",
     )
-    parser.add_argument("--depth", type=int, help="depth limit per puzzle position")
-    parser.add_argument("--mate", type=int, help="mate limit per puzzle position")
+    parser.add_argument("--depth", type=int, help="Depth limit per puzzle position.")
+    parser.add_argument("--mate", type=int, help="Mate limit per puzzle position.")
     parser.add_argument(
-        "--time", type=float, help="time limit (in seconds) per puzzle position"
+        "--time", type=float, help="Time limit (in seconds) per puzzle position."
     )
-    parser.add_argument("--hash", type=int, help="hash table size in MB")
+    parser.add_argument("--hash", type=int, help="Hash table size in MB.")
     parser.add_argument(
         "--threads",
         type=int,
         default=1,
-        help="number of threads per position",
+        help="Number of threads per position.",
     )
-    parser.add_argument("--syzygyPath", help="path to syzygy EGTBs")
+    parser.add_argument("--syzygyPath", help="Path to syzygy EGTBs.")
     parser.add_argument(
         "--depthMin",
         type=int,
         default=15,
-        help="search depth increases linearly from PV leaf node to puzzle positions, starting from this value",
+        help="Search depth increases linearly from PV leaf node to puzzle positions, starting from this value.",
     )
     parser.add_argument(
         "--depthMax",
         type=int,
         default=30,
-        help="upper cap for search depth for backward analysis",
+        help="Upper cap for search depth for backward analysis.",
     )
     parser.add_argument(
         "--nodesFill",
         type=str,
-        help="nodes limit per position for backward analysis (hash filling)",
+        help="Nodes limit per position for backward analysis (hash filling).",
     )
     parser.add_argument(
         "--timeFill",
         type=float,
-        help="time limit (in seconds) per position for backward analysis",
+        help="Time limit (in seconds) per position for backward analysis.",
     )
     parser.add_argument(
         "--mateFill",
         choices=["all", "won", "None"],
         default="None",
-        help="use mate limit for backward analysis (overrides all other limits, may lead to infinite analysis for incorrect PVs)",
+        help="Use mate limit for backward analysis in specified nodes of the PV (overrides all other limits, may lead to infinite analysis for incorrect PVs).",
     )
     parser.add_argument(
         "--longestPV",
         action="store_true",
-        help="if --mateFill != None, then on final board try to get longest PV possible",
+        help="If --mateFill != None, then on final board try to get longest PV possible (until mate itself is lost).",
     )
     parser.add_argument(
         "--completePV",
         action="store_true",
-        help="repeat analysis for the final board until the PV is complete (increasing depth)",
+        help="Repeat analysis for the final board until the PV is complete (increasing depth).",
     )
     parser.add_argument(
         "--mateType",
         choices=["all", "won", "lost"],
         default="won",
-        help="type of positions to find PVs for (WARNING: use all or lost only for reliable engines!)",
+        help="Type of positions to find PVs for (WARNING: use all or lost only for reliable engines!).",
     )
     parser.add_argument(
         "--PVstatus",
         default="short+ok",
         help="Filter the PVs to be loaded by status: ok, short, long, draw, wrong, all.",
+    )
+    parser.add_argument(
+        "--logFile",
+        help="Optional file to log the engine's output while it is analysing.",
     )
     args = parser.parse_args()
     if (
@@ -315,6 +319,10 @@ if __name__ == "__main__":
 
     total_count = len(ana_fens)
     print(f"Found {total_count} PVs we can use to try to prove/find mate PVs ...")
+
+    if args.logFile:
+        print(f"Logging of engine output to {args.logFile} enabled.")
+        logging.basicConfig(filename=args.logFile, level=logging.DEBUG)
 
     ana = Analyser(args)
 
