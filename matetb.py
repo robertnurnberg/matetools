@@ -214,7 +214,6 @@ class MateTB:
             count += 1
             if count % 1000 == 0:
                 print(f"Progress: {count}", end="\r")
-                print(f"\n FEN: {fen}")
             board = chess.Board(fen)
             score = -VALUE_MATE if board.is_checkmate() else 0
             if score == 0 and self.engine and ana:
