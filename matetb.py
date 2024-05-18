@@ -295,6 +295,10 @@ class MateTB:
                 f.write(f"{fen} {bmstr}\n")
         print(f"Wrote TB to {filename}.")
 
+    def probe_tb(self, fen):
+        idx = self.fen2index.get(fen, None)
+        return self.tb[idx][0] if idx is not None else None
+
     def obtain_pv(self, board):
         if (
             not bool(board.legal_moves)
@@ -307,8 +311,7 @@ class MateTB:
         moves = []
         for move in board.legal_moves:
             board.push(move)
-            idx = self.fen2index.get(board.epd(), None)
-            score = self.tb[idx][0] if idx is not None else None
+            score = self.probe_tb(board.epd())
             if score not in [0, None]:
                 score = -score + (1 if score > 0 else -1)
             moves.append((score, move))
@@ -316,8 +319,16 @@ class MateTB:
         bestscore, bestmove = max(
             moves, key=lambda t: float("-inf") if t[0] is None else t[0]
         )
-        if bestscore is None:
+        score = self.probe_tb(board.epd())
+        if bestscore != score:
+            # even though we do not assign children to engine mate nodes,
+            # transpositions can result in children being present in TB, which
+            # would then be found by walking along the PV beyond the mate node
             assert self.engine, "This should never happen."
+            if self.verbose >= 4:
+                print(
+                    f"""Engine mate node "{board.epd()}" has score {score} and children's best score {bestscore}."""
+                )
             return ["; PV is short"]
         board.push(bestmove)
         return [str(bestmove)] + self.obtain_pv(board)
@@ -327,8 +338,7 @@ class MateTB:
         board = chess.Board(self.root_pos)
         for move in pv:
             board.push(chess.Move.from_uci(move))
-        idx = self.fen2index.get(board.epd(), None)
-        score = self.tb[idx][0] if idx is not None else None
+        score = self.probe_tb(board.epd())
         assert score and score > 0, f'Unexpected score {score} for "{board.epd()}".'
         newpv, it = [], 0
         while len(newpv) != len(pv) + VALUE_MATE - score:
@@ -356,8 +366,7 @@ class MateTB:
         sp = []
         for move in board.legal_moves:
             board.push(move)
-            idx = self.fen2index.get(board.epd(), None)
-            score = self.tb[idx][0] if idx is not None else None
+            score = self.probe_tb(board.epd())
             if score not in [0, None]:
                 score = -score + (1 if score > 0 else -1)
             pv = [str(move)] + (
@@ -370,13 +379,13 @@ class MateTB:
         if score not in [0, None]:
             print("\nMatetrack:")
             print(f"{self.root_pos} bm #{score2mate(score)}; PV: {pv};")
+            if self.engine and pv[-13:] == "; PV is short":
+                print("\nLengthening PV ... ", flush=True)
+                pv = self.lengthen_pv(pv[:-13])
+                print("\nMatetrack with complete PV:")
+                print(f"{self.root_pos} bm #{score2mate(score)}; PV: {' '.join(pv)};")
         else:
             print("No mate found.")
-        if self.engine and pv[-13:] == "; PV is short":
-            print("\nLengthening PV ... ", flush=True)
-            pv = self.lengthen_pv(pv[:-13])
-            print("\nMatetrack with complete PV:")
-            print(f"{self.root_pos} bm #{score2mate(score)}; PV: {' '.join(pv)};")
         if self.verbose == 0:
             return
         print("\nMultiPV:")
