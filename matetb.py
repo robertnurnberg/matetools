@@ -329,7 +329,7 @@ class MateTB:
             board.push(chess.Move.from_uci(move))
         idx = self.fen2index.get(board.epd(), None)
         score = self.tb[idx][0] if idx is not None else None
-        assert score and score > 0, f'Unexpected score {score} for "board.epd()".'
+        assert score and score > 0, f'Unexpected score {score} for "{board.epd()}".'
         newpv, it = [], 0
         while len(newpv) != len(pv) + VALUE_MATE - score:
             limit = chess.engine.Limit(depth=2 * it) if it else self.limit
