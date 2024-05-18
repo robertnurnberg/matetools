@@ -377,7 +377,7 @@ class MateTB:
             if score not in [0, None]:
                 score = -score + (1 if score > 0 else -1)
             pv = [str(move)] + (
-                self.obtain_pv(board.copy()) if score is not None else []
+                self.obtain_pv(board.copy()) if score not in [0, None] else []
             )
             sp.append((score, pv))
             board.pop()
