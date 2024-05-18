@@ -465,43 +465,43 @@ def fill_exclude_options(args):
         args.excludeToCapturable = True
     elif epd == "8/8/1p6/1p6/1p6/1p6/pppbK3/rbk3N1 w - -":  # bm #13
         args.excludeFrom = "e2"
-        args.excludeAllowingCapture = True
+        args.excludeToCapturable = True
     elif epd == "8/8/8/2p5/1pp5/brpp4/1pprp2P/qnkbK3 w - -":  # bm #15
         args.excludeFrom = "e1"
         args.excludePromotionTo = "qrb"
-        args.excludeAllowingCapture = True
+        args.excludeToCapturable = True
     elif epd == "4k3/6Q1/8/8/5p2/1p1p1p2/1ppp1p2/nrqrbK2 w - -":  # bm #15
         args.excludeFrom = "f1"
-        args.excludeAllowingCapture = True
+        args.excludeToCapturable = True
     elif epd in [
-        "k7/8/1Qp5/2p5/2p5/6p1/2p1ppp1/2Kbrqrn w - -",  # bm #7
-        "8/8/8/6r1/8/6B1/p1p5/k1Kb4 w - -",  # bm #16
+        "8/8/8/6r1/8/6B1/p1p5/k1Kb4 w - -",  # bm #7
+        "k7/8/1Qp5/2p5/2p5/6p1/2p1ppp1/2Kbrqrn w - -",  # bm #15
     ]:
         args.excludeFrom = "c1"
-        args.excludeAllowingCapture = True
+        args.excludeToCapturable = True
     elif epd == "8/8/8/2p5/1pp5/brpp4/qpprp2P/1nkbnK2 w - -":  # bm #16
         args.openingMoves = "f1e1"
         args.excludeFrom = "e1"
         args.excludePromotionTo = "qrb"
-        args.excludeAllowingCapture = True
+        args.excludeToCapturable = True
     elif epd == "8/8/8/2p5/1pp5/brpp4/qpprpK1P/1nkbn3 w - -":  # bm #16
         args.openingMoves = "f2e1"
         args.excludeFrom = "e1"
         args.excludePromotionTo = "qrb"
-        args.excludeAllowingCapture = True
+        args.excludeToCapturable = True
     elif epd == "8/p7/8/8/8/3p1b2/pp1K1N2/qk6 w - -":  # bm #18
         args.excludeFrom = "d2"
-        args.excludeAllowingCapture = True
+        args.excludeToCapturable = True
     elif epd == "k7/8/1Q6/8/8/6p1/1p1pppp1/1Kbrqbrn w - -":  # bm #26
         args.excludeFrom = "b1"
-        args.excludeAllowingCapture = True
+        args.excludeToCapturable = True
     elif epd in [
         "8/8/2p5/2p5/p1p5/rbp5/p1p2Q2/n1K4k w - -",  # bm #26
         "8/2p5/2p5/8/p1p5/rbp5/p1p2Q2/n1K4k w - -",  # bm #28
     ]:
         args.excludeFrom = "c1"
         args.excludeTo = "a3 c3"
-        args.excludeAllowingCapture = True
+        args.excludeToCapturable = True
     elif epd in [
         "4k3/6Q1/8/5p2/5p2/1p3p2/1ppp1p2/nrqrbK2 w - -",  # bm #17
         "4k3/6Q1/8/8/8/1p3p2/1ppp1p2/nrqrbK2 w - -",  # bm #18
@@ -509,7 +509,7 @@ def fill_exclude_options(args):
     ]:
         args.excludeFrom = "f1"
         args.excludeTo = "h1"
-        args.excludeAllowingCapture = True
+        args.excludeToCapturable = True
     elif epd in [
         "8/8/8/8/6k1/8/2Qp1pp1/3Kbrrb w - -",  # bm #9
         "8/3Q4/8/2kp4/8/1p1p4/pp1p4/rrbK4 w - -",  # bm #12
