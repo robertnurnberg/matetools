@@ -30,6 +30,9 @@ class MateTB:
         print(f"Restrict moves for {'WHITE' if self.mating_side else 'BLACK'} side.")
 
         self.excludeSANs = [] if args.excludeSANs is None else args.excludeSANs.split()
+        self.excludeMoves = (
+            [] if args.excludeMoves is None else args.excludeMoves.split()
+        )
 
         self.BBexcludeFrom = self.BBexcludeTo = 0
         if args.excludeFrom:
@@ -157,6 +160,9 @@ class MateTB:
         """restrict the mating side's candidate moves, to reduce the overall tree size"""
         if not board.turn == self.mating_side:
             return True
+        uci = move.uci()
+        if uci in self.excludeMoves:
+            return False
         if board.san(move) in self.excludeSANs:
             return False
         if self.BBexcludeFrom & (1 << move.from_square):
@@ -170,7 +176,6 @@ class MateTB:
         ):
             return False
         if self.excludePromotionTo:
-            uci = move.uci()
             if len(uci) == 5 and uci[4] in self.excludePromotionTo:
                 return False
         if self.needToGenerateResponses:
@@ -425,6 +430,7 @@ def fill_exclude_options(args):
     """For some known EPDs, this defines the right exclude commands."""
     if (
         args.openingMoves
+        or args.excludeMoves
         or args.excludeSANs
         or args.excludeFrom
         or args.excludeTo
@@ -647,6 +653,31 @@ def fill_exclude_options(args):
         args.excludeAllowingFrom = "b2 c2 d2 e2"
         args.excludeAllowingSANs = "Ke3 Kf3 Kh1 Kg2 Kh2"
     elif epd in [
+        "4R3/1n1p4/3n4/8/8/p4p2/7p/5K1k w - -",  # bm #20
+        "4R3/1n1p1p2/3n4/8/8/p4p2/7p/5K1k w - -",  # bm #32
+        "4R3/pn1p1p1p/p2n4/8/8/p4p2/7p/5K1k w - -",  # bm #69
+    ]:
+        args.openingMoves = (
+            "e8e1 d6e4 e1e4 f3f2 f1f2 * e4e1, e8e1 d6e4 e1e4 * e4e1, e8e1 * f1f2"
+        )
+        args.excludeSANs = (
+            "Ra2 Ra3 Ra4 Ra5 Ra6 Ra7 Ra8 "
+            + "Rb2 Rb3 Rb4 Rb5 Rb6 Rb7 Rb8 "
+            + "Rc2 Rc3 Rc4 Rc5 Rc6 Rc7 Rc8 "
+            + "Rd2 Rd3 Rd4 Rd5 Rd6 Rd7 Rd8 "
+            + "Re2 Re3 Re4 Re5 Re6 Re7 Re8 "
+            + "Rf2 Rf3 Rf4 Rf5 Rf6 Rf7 Rf8 "
+            + "Rg2 Rg3 Rg4 Rg5 Rg6 Rg7 Rg8 "
+            + "Rh2 Rh3 Rh4 Rh5 Rh6 Rh7 Rh8 "
+        )
+        args.excludeAllowingCapture = True
+        args.excludeAllowingFrom = "a1 d1 f1 h1"
+        if args.engine is not None:
+            args.analyseAll = True
+            if not (args.limitNodes or args.limitDepth or args.limitTime):
+                args.limitDepth = "2"
+
+    elif epd in [
         "8/8/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #7
         "8/7p/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #27
         "8/5ppp/5p2/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #87
@@ -690,6 +721,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--openingMoves",
         help="Comma separated opening lines in UCI notation that specify the mating side's moves. In each line a single placeholder '*' is allowed for the defending side.",
+    )
+    parser.add_argument(
+        "--excludeMoves",
+        help="Space separated UCI moves that are not allowed.",
     )
     parser.add_argument(
         "--excludeSANs",
@@ -785,6 +820,7 @@ if __name__ == "__main__":
     options = [
         ("epd", args.epd),
         ("openingMoves", args.openingMoves),
+        ("excludeMoves", args.excludeMoves),
         ("excludeSANs", args.excludeSANs),
         ("excludeFrom", args.excludeFrom),
         ("excludeTo", args.excludeTo),
