@@ -31,6 +31,15 @@ def pv_status(fen, mate, pv):
     return "wrong"
 
 
+def filtered_analysis(engine, board, limit=None, game=None):
+    info = {}
+    with engine.analysis(board, limit, game=game) as analysis:
+        for line in analysis:
+            if "score" in line and not ("upperbound" in line or "lowerbound" in line):
+                info = line
+    return info
+
+
 class Analyser:
     def __init__(self, args):
         self.engine = args.engine
@@ -53,7 +62,7 @@ class Analyser:
         for fen, bm, pvlength, line in fens:
             pv = None
             board = chess.Board(fen)
-            info = engine.analyse(board, self.limit, game=board)
+            info = filtered_analysis(self.engine, board, self.limit, game=board)
             m = info["score"].pov(board.turn).mate() if "score" in info else None
             if m is not None and abs(m) <= abs(bm) and "pv" in info:
                 pv = [m.uci() for m in info["pv"]]
