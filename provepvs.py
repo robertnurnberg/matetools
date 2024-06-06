@@ -22,6 +22,15 @@ def pv_status(fen, mate, pv):
     return "wrong"
 
 
+def filtered_analysis(engine, board, limit=None, game=None):
+    info = {}
+    with engine.analysis(board, limit, game=game) as analysis:
+        for line in analysis:
+            if "score" in line and not ("upperbound" in line or "lowerbound" in line):
+                info = line
+    return info
+
+
 class Analyser:
     def __init__(self, args):
         self.engine = chess.engine.SimpleEngine.popen_uci(args.engine)
@@ -75,7 +84,7 @@ class Analyser:
                     f'Analysing "{board.epd()}" (after move {board.peek().uci()}) to {limit}.',
                     flush=True,
                 )
-                info = self.engine.analyse(board, limit)
+                info = filtered_analysis(self.engine, board, limit)
                 if "score" in info:
                     score = info["score"].pov(board.turn)
                     depth = info["depth"] if "depth" in info else None
@@ -121,7 +130,7 @@ class Analyser:
                 f'Analysing "{board.epd()}" to {limit}.',
                 flush=True,
             )
-            info = self.engine.analyse(board, limit)
+            info = filtered_analysis(self.engine, board, limit)
             m, pv = None, None
             if "score" in info:
                 score = info["score"].pov(board.turn)

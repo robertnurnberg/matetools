@@ -19,6 +19,15 @@ def mate2score(m):
     return None
 
 
+def filtered_analysis(engine, board, limit=None, game=None):
+    info = {}
+    with engine.analysis(board, limit, game=game) as analysis:
+        for line in analysis:
+            if "score" in line and not ("upperbound" in line or "lowerbound" in line):
+                info = line
+    return info
+
+
 class MateTB:
     def __init__(self, args):
         self.fen2index = {}  # maps FENs from game tree to their index idx
@@ -231,7 +240,7 @@ class MateTB:
             if score == 0 and self.engine and ana:
                 if self.verbose >= 4:
                     print(f'Analysing "{board.epd()}" to {self.limit}.')
-                info = self.engine.analyse(board, self.limit)
+                info = filtered_analysis(self.engine, board, self.limit)
                 if "score" in info:
                     m = info["score"].pov(board.turn).mate()
                     if m:
@@ -357,7 +366,7 @@ class MateTB:
             limit = chess.engine.Limit(depth=2 * it) if it else self.limit
             if self.verbose >= 4:
                 print(f'Analysing "{board.epd()}" to {limit}.')
-            info = self.engine.analyse(board, limit)
+            info = filtered_analysis(self.engine, board, limit)
             if "score" in info:
                 m = info["score"].pov(board.turn).mate()
                 if m:
