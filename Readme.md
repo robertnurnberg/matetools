@@ -25,9 +25,9 @@ To this end the following scripts are provided:
 * `deducepvs.py`: uses proven PVs, and the associated PVs for all
   the positions along the mating lines, to find possibly missing PVs
 * `matetb.py`: constructs the PV for a single EPD with the help of a custom tablebase for a reduced game tree
-* `mergepvs.py`: merges several EPD file containing PVs into one
+* `mergepvs.py`: merges several EPD files containing PVs into one
 * `provepvs.py`: uses conjectured PVs to guide a local engine to find mates and
-  prove PVs (the scripts works sequentially, proven PVs are available
+  prove PVs (the script works sequentially, proven PVs are available
   immediately)
 * `shortenpvs.py`: removes moves from the end of existing PVs (only used in
   development, for debugging other scripts)
