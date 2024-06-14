@@ -65,7 +65,7 @@ class Analyser:
         for fen, bm, pvlength, line in fens:
             pv = None
             board = chess.Board(fen)
-            info = filtered_analysis(self.engine, board, self.limit, game=board)
+            info = filtered_analysis(engine, board, self.limit, game=board)
             m = info["score"].pov(board.turn).mate() if "score" in info else None
             if m is not None and abs(m) <= abs(bm) and "pv" in info:
                 pv = [m.uci() for m in info["pv"]]
