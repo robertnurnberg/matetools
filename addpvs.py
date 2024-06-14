@@ -115,12 +115,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--epdFile",
         default="matetrack.epd",
-        help="file containing the positions and their mate scores",
+        help="file containing the positions, their mate scores, and possibly PVs",
     )
     parser.add_argument(
         "--outFile",
         default="matetrackpv.epd",
-        help="output file for mates with their mate scores and their PVs",
+        help="output file for mates with their mate scores and existing complete as well as newly found PVs",
     )
     parser.add_argument(
         "--mateType",
