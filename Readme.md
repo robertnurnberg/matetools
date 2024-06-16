@@ -35,7 +35,7 @@ To this end the following scripts are provided:
 
 By way of example, the following EPD files are provided:
 
-* `ChestUCI_23102018.epd`: the original suite derived from publicly available
+* `ChestUCI_23102018.epd`: The original suite derived from publicly available
 `ChestUCI.epd` files, see
 [FishCooking](https://groups.google.com/g/fishcooking/c/lh1jTS4U9LU/m/zrvoYQZUCQAJ). It contains 6561 positions, with one draw, four positions that are likely draws due to the 50 move rule, some illegal positions and some positions with a sub-optimal or likely incorrect value for the fastest known mate.
 * `matetrack.epd`: The successor to `ChestUCI_23102018.epd`, with all illegal positions removed and all known errors corrected. It contains 6556 mate problems, ranging from mate in 1 (#1) to #126 for positions with between 4 and 32 pieces. In 26 positions the side to move is going to get mated.
