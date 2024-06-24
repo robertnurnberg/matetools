@@ -382,12 +382,12 @@ class MateTB:
                     s = mate2score(m)
                     if s > score:
                         print("Found shorter mate at end of PV, cannot complete PV.")
-                        return
+                        return ""
                     if s == score and "pv" in info:
                         newpv = pv + [m.uci() for m in info["pv"]]
                         if self.verbose >= 4:
                             print(f"New PV {newpv} has length {len(newpv)}.")
-        return newpv
+        return " ".join(newpv)
 
     def output(self):
         board = chess.Board(self.root_pos)
@@ -407,11 +407,12 @@ class MateTB:
         if score not in [0, None]:
             print("\nMatetrack:")
             print(f"{self.root_pos} bm #{score2mate(score)}; PV: {pv};")
-            if self.engine and pv[-13:] == "; PV is short":
+            if self.engine and pv[-14:] == " ; PV is short":
                 print("\nLengthening PV ... ", flush=True)
-                pv = self.lengthen_pv(pv[:-13])
-                print("\nMatetrack with complete PV:")
-                print(f"{self.root_pos} bm #{score2mate(score)}; PV: {' '.join(pv)};")
+                pv = self.lengthen_pv(pv[:-14])
+                if pv:
+                    print("\nMatetrack with complete PV:")
+                    print(f"{self.root_pos} bm #{score2mate(score)}; PV: {pv};")
         else:
             print("No mate found.")
         if self.verbose == 0:
@@ -425,8 +426,9 @@ class MateTB:
             pvstr = " ".join(pv)
             if score:
                 score_str += f" mate {score2mate(score)}"
-                if self.engine and pvstr[-13:] == "; PV is short":
-                    pvstr = " ".join(self.lengthen_pv(pvstr[:-13]))
+                if self.engine and pvstr[-14:] == " ; PV is short":
+                    pv = self.lengthen_pv(pvstr[:-14])
+                    pvstr = pv if pv else pvstr[:-14]
             elif pv[-1][0] == ";":
                 pvstr = " ".join(pv[:-1])
             print(f"multipv {count+1} score {score_str} pv {pvstr}")
