@@ -85,11 +85,16 @@ class MateTB:
         self.engine = args.engine
         if self.engine:
             self.engine = chess.engine.SimpleEngine.popen_uci(self.engine)
+            if args.hash:
+                self.engine.configure({"Hash": args.hash})
             n = None if args.limitNodes is None else int(args.limitNodes)
             d = None if args.limitDepth is None else int(args.limitDepth)
             t = None if args.limitTime is None else float(args.limitTime)
             self.limit = chess.engine.Limit(nodes=n, depth=d, time=t)
             self.analyseAll = args.analyseAll
+            self.analyseMoves = (
+                [] if args.analyseMoves is None else args.analyseMoves.split()
+            )
             self.analyseSANs = (
                 [] if args.analyseSANs is None else args.analyseSANs.split()
             )
@@ -213,6 +218,8 @@ class MateTB:
         if board.turn == self.mating_side:
             return False
         if self.analyseAll:
+            return True
+        if move.uci() in self.analyseMoves:
             return True
         if board.san(move) in self.analyseSANs:
             return True
@@ -803,6 +810,7 @@ if __name__ == "__main__":
         "--engine",
         help="Optional name of the engine binary to analyse positions with the mating side to move to cut off parts of the game tree.",
     )
+    parser.add_argument("--hash", type=int, help="hash table size in MB")
     parser.add_argument("--limitNodes", help="engine's nodes limit per position")
     parser.add_argument("--limitDepth", help="engine's depth limit per position")
     parser.add_argument(
@@ -816,6 +824,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--analyseSANs",
         help="Space separated SAN moves of the losing side that are to be analysed by the engine.",
+    )
+    parser.add_argument(
+        "--analyseMoves",
+        help="Space separated UCI moves of the losing side that are to be analysed by the engine.",
     )
     parser.add_argument(
         "--analyseFrom",
@@ -855,6 +867,7 @@ if __name__ == "__main__":
         ("limitDepth", args.limitDepth),
         ("limitTime", args.limitTime),
         ("analyseAll", args.analyseAll),
+        ("analyseMoves", args.analyseMoves),
         ("analyseSANs", args.analyseSANs),
         ("analyseFrom", args.analyseFrom),
         ("analyseTo", args.analyseTo),
@@ -870,7 +883,7 @@ if __name__ == "__main__":
             if v is not None and str(v) != "False"
         ]
     )
-    print(f"Running with options {options}")
+    print(f"Running with options {options}", flush=True)
     mtb = MateTB(args)
     mtb.create_tb()
     mtb.output()
