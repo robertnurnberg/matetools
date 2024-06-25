@@ -749,6 +749,26 @@ def fill_exclude_options(args):
         args.analyseTo = "d1 f1 h1 b2 b3 a5 b6 d6"
         if not (args.limitNodes or args.limitDepth or args.limitTime):
             args.limitDepth = "10"
+    elif epd in [
+        "n1K5/bNp5/1pP5/1k4p1/1N2pnp1/PP2p1p1/4rpP1/5B2 w - -",  # bm #16 (w/ 368615)
+        "n1K5/bNp1p3/1pP5/1k4p1/1N3np1/PP2p1p1/4rpP1/5B2 w - -",  # bm #35 (not yet)
+        "n1K5/bNp1p1p1/1pP5/1k6/1N3np1/PP2p1p1/4rpP1/5B2 w - -",  # bm #57 (not yet)
+        "n1K5/bNp1p1p1/1pP3p1/1k2p3/1N3n2/PP4p1/4rpP1/5B2 w - -",  # bm #101 (not yet)
+    ]:
+        args.excludeFrom = "a3 b3 b4 b7 c6 g2"
+        args.excludeAllowingToCapturable = True
+        args.excludeAllowingFrom = "a8 b5 b6 c7 e2 f1 g3 g2 d3"
+        args.excludeTo = "a8"
+        args.excludeToCapturable = True
+        args.excludeMoves = (
+            "f1c4 e2c4 e2d1 e2f3 e2g4 e2h5 f1g2 f1h3 d3c2 d3b1 d3e4 d3f5 d3g6 d3h7"
+        )
+        if args.engine is None:
+            print("For this position --engine needs to be specified.")
+            exit(1)
+        args.analyseFrom = "f4 d3 g2 h3 h5 g6 e6 d5"
+        if not (args.limitNodes or args.limitDepth or args.limitTime):
+            args.limitDepth = "2"
 
 
 if __name__ == "__main__":
