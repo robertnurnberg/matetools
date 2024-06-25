@@ -751,8 +751,8 @@ def fill_exclude_options(args):
             args.limitDepth = "10"
     elif epd in [
         "n1K5/bNp5/1pP5/1k4p1/1N2pnp1/PP2p1p1/4rpP1/5B2 w - -",  # bm #16 (w/ 368615)
-        "n1K5/bNp1p3/1pP5/1k4p1/1N3np1/PP2p1p1/4rpP1/5B2 w - -",  # bm #35 (not yet)
-        "n1K5/bNp1p1p1/1pP5/1k6/1N3np1/PP2p1p1/4rpP1/5B2 w - -",  # bm #57 (not yet)
+        "n1K5/bNp1p3/1pP5/1k4p1/1N3np1/PP2p1p1/4rpP1/5B2 w - -",  # bm #35 (w/ 1795739)
+        "n1K5/bNp1p1p1/1pP5/1k6/1N3np1/PP2p1p1/4rpP1/5B2 w - -",  # bm #57 (w/ 3984267)
         "n1K5/bNp1p1p1/1pP3p1/1k2p3/1N3n2/PP4p1/4rpP1/5B2 w - -",  # bm #101 (not yet)
     ]:
         args.excludeFrom = "a3 b3 b4 b7 c6 g2"
