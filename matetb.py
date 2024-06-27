@@ -769,6 +769,21 @@ def fill_exclude_options(args):
         args.analyseFrom = "f4 d3 g2 h3 h5 g6 e6 d5"
         if not (args.limitNodes or args.limitDepth or args.limitTime):
             args.limitDepth = "2"
+    elif epd in [
+        "8/8/8/3p2p1/p2np1K1/p3N1pp/rb1N2pr/k1n3Rb w - -",  # bm #4
+        "8/8/8/3p2p1/p2np1Kp/p3N1p1/rb1N2pr/k1n3Rb w - -",  # bm #35
+        "8/4p3/3p4/p5p1/3n2Kp/p3N1p1/rb1N2pr/k1n3Rb w - -",  # bm #102
+    ]:
+        args.excludeFrom = "d2 e3 g1"
+        args.excludeTo = "g3"
+        args.excludeAllowingFrom = "a1 a2 d5"
+        args.excludeAllowingCapture = True
+        if args.engine is None:
+            print("For this position --engine needs to be specified.")
+            exit(1)
+        args.analyseAll = True
+        if not (args.limitNodes or args.limitDepth or args.limitTime):
+            args.limitDepth = "10"
 
 
 if __name__ == "__main__":
