@@ -602,7 +602,7 @@ def fill_exclude_options(args):
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "b1 h1"
         args.excludeAllowingMoves = "c3c2"
-    elif epd == "5Q2/p1p5/p1p5/6rp/7k/6p1/p1p3P1/rbK5 w - -":  # bm #62
+    elif epd == "5Q2/p1p5/p1p5/6rp/7k/6p1/p1p3P1/rbK5 w - -":  # bm #60 (finds #62)
         args.excludeFrom = "c1 g2"
         args.excludeTo = "a1 g3"
         args.excludeAllowingCapture = True
