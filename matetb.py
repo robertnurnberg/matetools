@@ -370,7 +370,7 @@ class MateTB:
         assert score and score > 0, f'Unexpected score {score} for "{board.epd()}".'
         newpv, it = [], 0
         while len(newpv) != len(pv) + VALUE_MATE - score:
-            limit = chess.engine.Limit(depth=2 * it) if it else self.limit
+            limit = chess.engine.Limit(depth=it) if it else self.limit
             if self.verbose >= 4:
                 print(f'Analysing "{board.epd()}" to {limit}.')
             info = filtered_analysis(self.engine, board, limit)
@@ -387,6 +387,7 @@ class MateTB:
                         newpv = pv + [m.uci() for m in info["pv"]]
                         if self.verbose >= 4:
                             print(f"New PV {newpv} has length {len(newpv)}.")
+            it += 1
         return " ".join(newpv)
 
     def output(self):
