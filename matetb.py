@@ -91,6 +91,12 @@ class MateTB:
             d = None if args.limitDepth is None else int(args.limitDepth)
             t = None if args.limitTime is None else float(args.limitTime)
             self.limit = chess.engine.Limit(nodes=n, depth=d, time=t)
+            self.matelimit = None
+            if args.mateNodes or args.mateDepth or args.mateTime:
+                n = None if args.mateNodes is None else int(args.mateNodes)
+                d = None if args.mateDepth is None else int(args.mateDepth)
+                t = None if args.mateTime is None else float(args.mateTime)
+                self.matelimit = chess.engine.Limit(nodes=n, depth=d, time=t)
             self.analyseAll = args.analyseAll
             self.analyseMoves = (
                 [] if args.analyseMoves is None else args.analyseMoves.split()
@@ -251,6 +257,16 @@ class MateTB:
                 if "score" in info:
                     m = info["score"].pov(board.turn).mate()
                     if m:
+                        if self.matelimit:
+                            if self.verbose >= 3:
+                                print(
+                                    f'Found mate {m} analysing "{board.epd()}", doing new analysis to {self.matelimit}.'
+                                )
+                            info = filtered_analysis(self.engine, board, self.matelimit)
+                            if "score" in info:
+                                newm = info["score"].pov(board.turn).mate()
+                                if newm and abs(newm) < abs(m):
+                                    m = newm
                         score = mate2score(m)
                         if self.verbose >= 3:
                             print(
@@ -889,6 +905,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--limitTime", help="engine's time limit (in seconds) per position"
     )
+    parser.add_argument("--mateNodes", help="engine's nodes limit per mate found")
+    parser.add_argument("--mateDepth", help="engine's depth limt per mate found")
+    parser.add_argument(
+        "--mateTime", help="engine's time limit (in seconds) per mate found"
+    )
     parser.add_argument(
         "--analyseAll",
         action="store_true",
@@ -939,6 +960,9 @@ if __name__ == "__main__":
         ("limitNodes", args.limitNodes),
         ("limitDepth", args.limitDepth),
         ("limitTime", args.limitTime),
+        ("mateNodes", args.mateNodes),
+        ("mateDepth", args.mateDepth),
+        ("mateTime", args.mateTime),
         ("analyseAll", args.analyseAll),
         ("analyseMoves", args.analyseMoves),
         ("analyseSANs", args.analyseSANs),
