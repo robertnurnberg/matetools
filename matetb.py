@@ -819,6 +819,38 @@ def fill_exclude_options(args):
         args.analyseAll = True
         if not (args.limitNodes or args.limitDepth or args.limitTime):
             args.limitDepth = "10"
+    elif epd in [
+        "2RN1qN1/5P2/3p1P2/3P4/1K6/1p1p1pp1/1p1p1np1/bk1b2Q1 w - -",  # bm #5
+        "2RN1qN1/5P2/3p1P2/3P4/8/Kp1p1pp1/1p1p1np1/bk1b2Q1 w - -",  # bm #21
+        "3N1qN1/1Kn2P2/3p1Pp1/3P1pp1/R7/1p1p4/1p1p1n2/bk1b2Q1 w - -",  # bm #107
+        "3N1qN1/1Kn2P2/1Q1p1Pp1/3P1pp1/1R6/1p1p4/kp1p4/b2b3n w - -",  # bm #109 (not yet)
+    ]:
+        if epd == "3N1qN1/1Kn2P2/1Q1p1Pp1/3P1pp1/1R6/1p1p4/kp1p4/b2b3n w - -":
+            args.openingMoves = "b4a4 * b6g1"
+        args.excludeFrom = "d5 e7 g7 e8"
+        args.excludeTo = "d6 a1 b2 b3 d1 d2 d3"
+        args.excludeSANs = "Qxf2 Qxf3 Qxf4 Qxf5 Qxf6 Qxf7 Qxg8 Qxg2 Qxg3 Qxg4 Qxg5 Qxg6 Qxg7 Qxg8 Qxh1 Qxh1+ Rb1 Rb2 Rb3 Rb4 Rb5 Rb6 Rb7 Rb8 Rd1 Rd2 Rd3 Rd4 Rd5 Rd6 Rd7 Rd8 Re1 Re2 Re3 Re4 Re5 Re6 Re7 Re8 Rf1 Rf2 Rf3 Rf4 Rf5 Rf6 Rf7 Rf8 Rg1 Rg2 Rg3 Rg4 Rg5 Rg6 Rg7 Rg8 Rh1 Rh2 Rh3 Rh4 Rh5 Rh6 Rh7 Rh8"
+        args.excludeMoves = (
+            "d8e6 d8c6 d8b7 f7h8 f7h6 f7g5 f7e5 f7d6 g8f6 g8e7 h6g4 h6f5 h6f7 f7f8n"
+        )
+        args.excludeToCapturable = True
+        args.excludePromotionTo = "qrb"
+        args.excludeAllowingFrom = (
+            "c7 a1 b2 b3 d1 d2 d3 g7 h6 f7 g8 e8 d8 e7 h8 c8 b8 a8"
+        )
+        args.excludeAllowingTo = "f1 g1 f6 d5"
+        args.excludeAllowingMoves = "a2a3 c2c3"
+        args.excludeAllowingSANs = "Nxf7 Nxf6 Nxf7+ Nxf6+"
+        if args.engine is None:
+            print("For this position --engine needs to be specified.")
+            exit(1)
+        # args.analyseAll = True
+        args.analyseFrom = "f8 f2 h1"
+        args.analyseTo = "d8 g8 f7"
+        if not (args.limitNodes or args.limitDepth or args.limitTime):
+            args.limitDepth = "24"
+            args.limitNodes = "100000"
+            args.mateDepth = "32"
 
 
 if __name__ == "__main__":
