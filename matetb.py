@@ -706,7 +706,12 @@ def fill_exclude_options(args):
         args.excludeTo = "h4"
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "a1"
-        args.excludeAllowingSANs = "f1R c1R"
+        args.excludeAllowingSANs = (
+            "f1=R c1=R"
+            + "Bf1 Bd1 Bd3 Bc4 Bb5 Ba6 Bg4 Bh5"
+            + "Be2 Bg2 Bh1 Be4 Bd5 Bc6 Bb7 Ba8"
+            + "Kf2 Ke1 Ke2"
+        )
     elif epd in [
         "4R3/1n1p4/3n4/8/8/p4p2/7p/5K1k w - -",  # bm #20
         "4R3/1n1p1p2/3n4/8/8/p4p2/7p/5K1k w - -",  # bm #32
