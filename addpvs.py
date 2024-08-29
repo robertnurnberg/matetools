@@ -1,4 +1,4 @@
-import argparse, chess, chess.engine, concurrent.futures, re
+import argparse, chess, chess.engine, concurrent.futures, random, re
 from multiprocessing import freeze_support, cpu_count
 from time import time
 from tqdm import tqdm
@@ -159,6 +159,9 @@ if __name__ == "__main__":
                 ) and pv_status(fen, bm, pv) != "ok":
                     ana_fens.append((fen, bm, len(pv), line))
                 fens.append((fen, line))
+
+    random.seed(42)
+    random.shuffle(ana_fens)  # try to balance the analysis time across chunks
 
     print(f"{len(fens)} FENs loaded, {len(ana_fens)} need analysis...")
 
