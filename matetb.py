@@ -698,6 +698,7 @@ def fill_exclude_options(args):
     elif epd in [
         "8/8/8/8/7p/p4Q1K/3r4/n5k1 w - -", # bm #12 (w/ 71370377, not yet)
                                            # w/ 71135162 to d2, not yet
+                                           # w/ 70844204 to d10, #16
         "8/2p5/8/8/7p/p4Q1K/3r4/n5k1 w - -", # bm #14 (not yet)
         "8/8/5p2/5p2/7p/p4Q1K/3r4/n5k1 w - -", # bm #24 (not yet)
         "8/p1p5/p4p2/5p2/p6p/p4Q1K/3r4/n5k1 w - -",  # bm #108 (not yet)
