@@ -26,6 +26,6 @@ if __name__ == "__main__":
     if args.stable:
         fens.sort(key=lambda t: abs(t[1]) + (0.5 if t[1] < 0 else 0))
     else:
-        fens.sort(key=lambda t: (abs(t[1]), t[0]))
+        fens.sort(key=lambda t: (abs(t[1]) + (0.5 if t[1] < 0 else 0), t[0]))
     for _, _, line in fens:
         print(line[:-1])
