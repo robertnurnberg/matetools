@@ -714,7 +714,7 @@ def fill_exclude_options(args):
             exit(1)
         args.analyseAll = True
         if not (args.limitNodes or args.limitDepth or args.limitTime):
-            args.limitDepth = "18"
+            args.limitDepth = "20"
     elif epd in [
         "4R3/1n1p4/3n4/8/8/p4p2/7p/5K1k w - -",  # bm #20
         "4R3/1n1p1p2/3n4/8/8/p4p2/7p/5K1k w - -",  # bm #32
