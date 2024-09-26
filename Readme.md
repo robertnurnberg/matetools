@@ -59,7 +59,7 @@ python advancepvs.py --plies 1 --mateType won && sed 's/; PV.*/;/' matedtrackpv.
 ```
 Similarly, the file `mate-in-2.epd` was created with
 ```shell
-python advancepvs.py --targetMate 2 && grep 'bm #2;' matedtrackpv.epd | sed 's/; PV.*/;/' | sort | uniq > mate-in-2.epd
+python advancepvs.py --targetMate 2 && grep 'bm #2;' matedtrackpv.epd | awk -F'; PV' '\!seen[$1]++' > mate-in-2.epd
 ```
 
 ### Trivia
