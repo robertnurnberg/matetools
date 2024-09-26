@@ -39,12 +39,16 @@ By way of example, the following EPD files are provided:
 
 * `ChestUCI_23102018.epd`: The original suite derived from publicly available
 `ChestUCI.epd` files, see
-[FishCooking](https://groups.google.com/g/fishcooking/c/lh1jTS4U9LU/m/zrvoYQZUCQAJ). It contains 6561 positions, with one definite and five likely draws, some illegal positions and some positions with a sub-optimal or likely incorrect value for the fastest known mate.
-* `matetrack.epd`: The successor to `ChestUCI_23102018.epd`, with all illegal positions removed and all known errors corrected. It contains 6554 mate problems, ranging from mate in 1 (#1) to #126 for positions with between 4 and 32 pieces. In 26 positions the side to move is going to get mated.
+[FishCooking](https://groups.google.com/g/fishcooking/c/lh1jTS4U9LU/m/zrvoYQZUCQAJ). It contains 6566 positions, with one definite and five likely draws, some illegal positions and some positions with a sub-optimal or likely incorrect value for the fastest known mate.
+* `matetrack.epd`: The successor to `ChestUCI_23102018.epd`, with all illegal positions removed and all known errors corrected. It contains 6554 mate problems, ranging from mate in 1 (#1) to #126 for positions with between 4 and 32 pieces. In 26 positions the side to move is going to get mated. 
+See [plot](images/matetrack.png).
 * `matetrackpv.epd`: The same as `matetrack.epd` but with PVs leading to the checkmate where such a PV is known.
-* `matedtrackpv.epd`: Derived from `matetrackpv.epd` (using the script `advancepvs.py`) by advancing one ply in all positions with `bm>1` that have a PV. In 6546 positions the side to move is going to get mated.
-* `matedtrack.epd`: The same as `matedtrackpv.epd`, but with the PV information removed.
-* `mate-in-2.epd`: A collection of 6546 `bm #2` puzzles derived from `matetrackpv.epd`.
+* `matedtrackpv.epd`: Derived from `matetrackpv.epd` (using the script `advancepvs.py`) by advancing one ply in all positions with `bm>1` that have a PV. It contains 6536 unique positions, and in 6528 of these the side to move is going to get mated.
+* `matedtrack.epd`: The same as `matedtrackpv.epd`, but with the PV information removed. 
+See [plot](images/matedtrack.png).
+* `mate-in-2.epd`: A collection of 6331 `bm #2` puzzles derived from `matetrackpv.epd`. The positions have between 3 and 32 pieces.
+* `mates2000.epd`: A smaller test suite with 2000 positions ranging from #1 to #27 used as part of the CI workflow for (Stockfish)[https://github.com/official-stockfish/Stockfish]. It contains positions with between 4 and 32 pieces, and in 1105 positions the side to move is going to get mated.
+See [plot](images/mates2000.png).
 
 ### Automatic creation of new test positions
 
@@ -55,7 +59,7 @@ python advancepvs.py --plies 1 --mateType won && sed 's/; PV.*/;/' matedtrackpv.
 ```
 Similarly, the file `mate-in-2.epd` was created with
 ```shell
-python advancepvs.py --targetMate 2 && grep 'bm #2;' matedtrackpv.epd > mate-in-2.epd
+python advancepvs.py --targetMate 2 && grep 'bm #2;' matedtrackpv.epd | sed 's/; PV.*/;/' | sort | uniq > mate-in-2.epd
 ```
 
 ### Trivia
