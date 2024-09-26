@@ -47,7 +47,7 @@ See [plot](images/matetrack.png).
 * `matedtrack.epd`: The same as `matedtrackpv.epd`, but with the PV information removed. 
 See [plot](images/matedtrack.png).
 * `mate-in-2.epd`: A collection of 6331 `bm #2` puzzles derived from `matetrackpv.epd`. The positions have between 3 and 32 pieces.
-* `mates2000.epd`: A smaller test suite with 2000 positions ranging from #1 to #27 used as part of the CI workflow for (Stockfish)[https://github.com/official-stockfish/Stockfish]. It contains positions with between 4 and 32 pieces, and in 1105 positions the side to move is going to get mated.
+* `mates2000.epd`: A smaller test suite with 2000 positions ranging from #1 to #27 used as part of the CI workflow for [Stockfish](https://github.com/official-stockfish/Stockfish). It contains positions with between 4 and 32 pieces, and in 1105 positions the side to move is going to get mated.
 See [plot](images/mates2000.png).
 
 ### Automatic creation of new test positions
