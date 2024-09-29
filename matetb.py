@@ -844,13 +844,23 @@ def fill_exclude_options(args):
         if args.engine is None:
             print("For this position --engine needs to be specified.")
             exit(1)
-        # args.analyseAll = True
         args.analyseFrom = "f8 f2 h1"
         args.analyseTo = "d8 g8 f7"
         if not (args.limitNodes or args.limitDepth or args.limitTime):
             args.limitDepth = "24"
             args.limitNodes = "100000"
             args.mateDepth = "32"
+    elif epd == "8/1p1p4/3p2p1/5pP1/1p3P1k/1P1p1P1p/1P1P1P1K/7B w - -":  # bm #121;
+        args.excludeCaptures = True
+        args.excludeFrom = "h1"
+        if args.engine is None:
+            print("For this position --engine needs to be specified.")
+            exit(1)
+        args.analyseAll = True
+        if not (args.limitNodes or args.limitDepth or args.limitTime):
+            args.limitDepth = "34"
+        if not args.hash:
+            args.hash = 1024
 
 
 if __name__ == "__main__":
