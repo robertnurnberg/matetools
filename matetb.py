@@ -881,7 +881,7 @@ def fill_exclude_options(args):
         args.excludeAllowingFrom = "c7"
         args.excludeAllowingTo = "a5 f5 f7"
         args.excludeAllowingMoves = "a2a1q b2b1q c2c1q d2d1q e2e1q f2f1q g2g1q h2h1q"
-        # TODO: args.excludeCapturingOf = "qrbk"
+        args.excludeCapturesOf = "qrbn"
         if args.engine is None:
             print("For this position --engine needs to be specified.")
             exit(1)
