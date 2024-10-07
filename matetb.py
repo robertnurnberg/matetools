@@ -51,6 +51,7 @@ class MateTB:
             for square in args.excludeTo.split():
                 self.BBexcludeTo |= chess.BB_SQUARES[chess.parse_square(square)]
         self.excludeCaptures = args.excludeCaptures
+        self.excludeCapturesOf = args.excludeCapturesOf
         self.excludeToAttacked = args.excludeToAttacked
         self.excludeToCapturable = args.excludeToCapturable
         self.excludePromotionTo = args.excludePromotionTo
@@ -189,8 +190,16 @@ class MateTB:
             return False
         if self.BBexcludeTo & (1 << move.to_square):
             return False
-        if self.excludeCaptures and board.is_capture(move):
-            return False
+        if self.excludeCaptures:
+            if board.is_capture(move):
+                return False
+        elif self.excludeCapturesOf:
+            if (
+                board.is_capture(move)
+                and board.piece_at(move.to_square).symbol().lower()
+                in self.excludeCapturesOf
+            ):
+                return False
         if self.excludeToAttacked and board.is_attacked_by(
             not board.turn, move.to_square
         ):
@@ -470,6 +479,7 @@ def fill_exclude_options(args):
         or args.excludeFrom
         or args.excludeTo
         or args.excludeCaptures
+        or args.excludeCapturesOf
         or args.excludeToAttacked
         or args.excludeToCapturable
         or args.excludePromotionTo
@@ -899,6 +909,10 @@ if __name__ == "__main__":
         help="Never capture.",
     )
     parser.add_argument(
+        "--excludeCapturesOf",
+        help='String containing piece types that should never be captured, e.g. "qrbn".',
+    )
+    parser.add_argument(
         "--excludeToAttacked",
         action="store_true",
         help="Never move to attacked squares (including from pinned pieces, but ignoring en passant).",
@@ -990,6 +1004,7 @@ if __name__ == "__main__":
         ("excludeFrom", args.excludeFrom),
         ("excludeTo", args.excludeTo),
         ("excludeCaptures", args.excludeCaptures),
+        ("excludeCapturesOf", args.excludeCapturesOf),
         ("excludeToAttacked", args.excludeToAttacked),
         ("excludeToCapturable", args.excludeToCapturable),
         ("excludePromotionTo", args.excludePromotionTo),
