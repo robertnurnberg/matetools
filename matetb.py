@@ -861,6 +861,25 @@ def fill_exclude_options(args):
             args.limitDepth = "34"
         if not args.hash:
             args.hash = 1024
+    elif epd in [
+        "qbnK1n2/k1P2P2/p7/Pp3P2/8/8/2Q5/8 w - -",  # bm #16 (not yet)
+    ]:
+        args.excludeToCapturable = True
+        args.excludeFrom = "a5 c7 d8 f5 f7"
+        args.excludeTo = "a6 a8 b8 c8 f8"
+        # args.excludeAllowingFrom = "c7 a8 a6"
+        args.excludeAllowingFrom = "c7"
+        args.excludeAllowingTo = "a5 f5 f7"
+        args.excludeAllowingMoves = "a2a1q b2b1q c2c1q d2d1q e2e1q f2f1q g2g1q h2h1q"
+        # TODO: args.excludeCapturingOf = "qrbk"
+        if args.engine is None:
+            print("For this position --engine needs to be specified.")
+            exit(1)
+        args.analyseAll = True
+        if not (args.limitNodes or args.limitDepth or args.limitTime):
+            args.limitDepth = "2"  # 60
+        if not args.hash:
+            args.hash = 4096
 
 
 if __name__ == "__main__":
