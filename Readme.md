@@ -24,8 +24,9 @@ To this end the following scripts are provided:
 * `advancepvs.py`: advances a number of plies in the given PVs to create new puzzles
 * `deducepvs.py`: uses proven PVs, and the associated PVs for all
   the positions along the mating lines, to find possibly missing PVs
-* `diffmates.py`: compare two Chest-like EPD files
-* `matestats.py`: generate a distribution plot for the `bm` values found in a given EPD file
+* `diffmates.py`: compares two Chest-like EPD files
+* `filterpvs.py`: filters positions by the status of their PVs
+* `matestats.py`: generates a distribution plot for the `bm` values found in a given EPD file
 * `matetb.py`: constructs the PV for a single EPD with the help of a custom tablebase for a reduced game tree
 * `mergepvs.py`: merges several EPD files containing PVs into one
 * `provepvs.py`: uses conjectured PVs to guide a local engine to find mates and
