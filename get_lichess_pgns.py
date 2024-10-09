@@ -35,8 +35,8 @@ parser.add_argument("filename", help="file with FENs")
 parser.add_argument("--pgnFile", default="lichess.pgn", help="output file for PGNs")
 parser.add_argument(
     "--db",
-    choices=["lichess", "master", "lichess+master"],
-    default="lichess+master",
+    choices=["master", "lichess", "master+lichess"],
+    default="master+lichess",
     help="lichess db(s) to search in",
 )
 parser.add_argument(
