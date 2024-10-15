@@ -51,7 +51,8 @@ See [plot](images/matedtrack.png?raw=true).
 * `mates2000.epd`: A smaller test suite with 2000 positions ranging from #1 to #27 used as part of the CI workflow for [Stockfish](https://github.com/official-stockfish/Stockfish). It contains positions with between 4 and 32 pieces, and in 1105 positions the side to move is going to get mated.
 See [plot](images/mates2000.png?raw=true).
 * `fishmates.epd.gz`: A collection of 1M mates from LTC fishtest games, ranging from #3 to #41. The positions have between 6 and 31 pieces, and in 202213 positions the side to move is going to get mated.
-See [plot](images/fishmates.png?raw=true).
+See [plot](images/fishmates.png?raw=true). 
+See [WIP](https://github.com/robertnurnberg/matetools/pull/85) for improvements.
 
 ### Automatic creation of new test positions
 
