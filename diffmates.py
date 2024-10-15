@@ -1,9 +1,14 @@
-import argparse, chess, re
+import argparse, chess, gzip, re
+
+
+def open_file(filename):
+    open_func = gzip.open if filename.endswith(".gz") else open
+    return open_func(filename, "rt")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="A diff-like script to show the differences between two Chest-like .epd files.",
+        description="A diff-like script to show the differences between two Chest-like .epd(.gz) files.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("file1")
@@ -13,7 +18,7 @@ if __name__ == "__main__":
 
     d = [{}, {}]
     for idx, filename in enumerate([args.file1, args.file2]):
-        with open(filename) as f:
+        with open_file(filename) as f:
             for line in f:
                 m = p.match(line)
                 assert m, f"error for line '{line[:-1]}' in file {filename}"
