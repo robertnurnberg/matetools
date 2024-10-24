@@ -1,4 +1,9 @@
-import argparse, chess, re
+import argparse, chess, gzip, re
+
+
+def open_file(filename):
+    open_func = gzip.open if filename.endswith(".gz") else open
+    return open_func(filename, "rt")
 
 
 def pv_status(fen, mate, pv):
@@ -27,7 +32,7 @@ def pv_status(fen, mate, pv):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Filter positions by the status of their mate PVs.",
+        description="Filter positions in a .epd(.gz) file by the status of their mate PVs.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -51,10 +56,10 @@ if __name__ == "__main__":
 
     filtered = []
     allowed = args.status.split("+")
-    with open(args.epdFile) as f:
+    with open_file(args.epdFile) as f:
         for line in f:
             m = p.match(line)
-            assert m, f"error for line '{line[:-1]}' in file {args.cdbFile}"
+            assert m, f"error for line '{line[:-1]}' in file {args.epdFile}"
             fen, bm = m.group(1), int(m.group(2))
             _, _, pv = line.partition("; PV: ")
             pv, _, _ = pv[:-1].partition(";")  # remove '\n'
