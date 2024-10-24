@@ -7,7 +7,7 @@ Chest-like EPD files. Such files store chess mate puzzles in the form
 ```
 Here `FEN` usually means just the first four fields of a standard FEN, and `bm`
 is a nonzero integer that indicates the (currently) fastest known mate for the
-given position.
+given position, assuming best play from both sides.
 
 The aim of the scripts in the repo is to convert such collections of puzzles
 into the format
@@ -52,7 +52,9 @@ See [plot](images/matedtrack.png?raw=true).
 See [plot](images/mates2000.png?raw=true).
 * `fishmates.epd.gz`: A collection of 1M mates from LTC fishtest games, ranging from #3 to #41. The positions have between 6 and 31 pieces, and in 202213 positions the side to move is going to get mated.
 See [plot](images/fishmates.png?raw=true). 
-See [WIP](https://github.com/robertnurnberg/matetools/pull/85) for improvements.
+Note: Many of the `bm` values at present are only upper bounds for the fastest
+possible mate, 
+see [WIP](https://github.com/robertnurnberg/matetools/pull/85) for improvements.
 
 ### Automatic creation of new test positions
 
