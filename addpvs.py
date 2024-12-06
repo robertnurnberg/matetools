@@ -137,7 +137,7 @@ if __name__ == "__main__":
     ana = Analyser(args)
     p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
-    print("Loading FENs...")
+    print("Loading FENs ...")
 
     fens, ana_fens = [], []
     with open(args.epdFile) as f:
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     random.seed(42)
     random.shuffle(ana_fens)  # try to balance the analysis time across chunks
 
-    print(f"{len(fens)} FENs loaded, {len(ana_fens)} need analysis...")
+    print(f"{len(fens)} FENs loaded, {len(ana_fens)} need analysis ...")
 
     numfen = len(ana_fens)
     workers = args.concurrency // (args.threads if args.threads else 1)
