@@ -351,7 +351,7 @@ if __name__ == "__main__":
     count = 0
     with open(args.outFile, "w") as f:
         for i, (fen, bm, pv, oldpv) in enumerate(ana_fens):
-            print(f'{i+1}/{total_count} "{fen}" with bm #{bm}...', flush=True)
+            print(f'{i+1}/{total_count} "{fen}" with bm #{bm} ...', flush=True)
 
             m, pv = ana.analyze_fen(fen, bm, pv)
 
