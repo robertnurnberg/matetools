@@ -167,10 +167,20 @@ class Analyser:
         return m, pv
 
 
+class HelpFormatter(argparse.ArgumentDefaultsHelpFormatter):
+    def add_usage(self, usage, actions, groups, prefix=None):
+        super().add_usage(usage=None, actions=actions, groups=groups, prefix=prefix)
+
+    def format_help(self):
+        help_text = super().format_help()
+        sample_usage = "\nSample usage:\n  python provepvs.py --epdFile mate16.epd --pvFile mate16pv.epd --mateType all --mateFill all --engine ./sf17 --threads 8 --hash 16384 --logFile mate16.log\n\n"
+        return help_text + sample_usage
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Use conjectured mate PVs from e.g. cdb matetracker to guide local analyses to prove mates.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        formatter_class=HelpFormatter,
     )
     parser.add_argument(
         "--epdFile",
@@ -178,7 +188,7 @@ if __name__ == "__main__":
         help="File containing positions, their mate scores and possibly proven PVs.",
     )
     parser.add_argument(
-        "--cdbFile",
+        "--pvFile",
         default="../cdbmatetrack/matetrack_cdbpv.epd",
         help="File with conjectured mate PVs.",
     )
@@ -292,12 +302,12 @@ if __name__ == "__main__":
 
     p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
-    d = {}  # prepare "cheat sheet" from cdb mate PVs
+    d = {}  # prepare "cheat sheet" from given mate PVs
     allowed = args.PVstatus.split("+")
-    with open(args.cdbFile) as f:
+    with open(args.pvFile) as f:
         for line in f:
             m = p.match(line)
-            assert m, f"error for line '{line[:-1]}' in file {args.cdbFile}"
+            assert m, f"error for line '{line[:-1]}' in file {args.pvFile}"
             fen, bm = m.group(1), int(m.group(2))
             _, _, pv = line.partition("; PV: ")
             pv, _, _ = pv[:-1].partition(";")  # remove '\n'
