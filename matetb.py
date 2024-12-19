@@ -34,6 +34,7 @@ class MateTB:
         self.tb = []  # tb[idx] = [score, children], children a list of indices
         parts = args.epd.split()
         self.root_pos = " ".join(parts[:4])
+        self.depth = args.depth
         playing_side = chess.BLACK if parts[1] == "b" else chess.WHITE
         self.mating_side = not playing_side if " bm #-" in args.epd else playing_side
         print(f"Restrict moves for {'WHITE' if self.mating_side else 'BLACK'} side.")
@@ -247,16 +248,19 @@ class MateTB:
     def initialize_tb(self):
         tic = time.time()
         print("Create the allowed part of the game tree ...")
-        count = 0
-        queue = collections.deque([(self.root_pos, False)])
+        count = depth = 0
+        queue = collections.deque([(self.root_pos, depth, False)])
         while queue:
-            fen, ana = queue.popleft()
+            fen, depth, ana = queue.popleft()
+            if self.depth is not None and depth > self.depth:
+                depth -= 1
+                break
             if fen in self.fen2index:
                 continue
             self.fen2index[fen] = count
             count += 1
             if count % 1000 == 0:
-                print(f"Progress: {count}", end="\r")
+                print(f"Progress: {count} (d{depth})", end="\r")
             board = chess.Board(fen)
             score = -VALUE_MATE if board.is_checkmate() else 0
             if score == 0 and self.engine and ana:
@@ -295,9 +299,11 @@ class MateTB:
                 if onlyMove or self.allowed_move(board, move):
                     analyse = self.engine and self.analyse_move(board, move)
                     board.push(move)
-                    queue.append((board.epd(), analyse))
+                    queue.append((board.epd(), depth + 1, analyse))
                     board.pop()
-        print(f"Found {len(self.fen2index)} positions in {time.time()-tic:.2f}s")
+        print(
+            f"Found {len(self.fen2index)} positions to depth {depth} in {time.time()-tic:.2f}s"
+        )
 
     def connect_children(self):
         tic = time.time()
@@ -502,6 +508,7 @@ def fill_exclude_options(args):
     ]:
         args.excludeFrom = "g1"
         args.excludeToCapturable = True
+        args.depth = 13 if args.depth is None else args.depth
     elif epd == "8/3Q4/8/1r6/kp6/bp6/1p6/1K6 w - -":  # bm #8
         args.excludeFrom = "b1"
         args.excludeTo = "b3"
@@ -620,6 +627,7 @@ def fill_exclude_options(args):
     elif epd == "8/8/7p/5K1k/R7/8/8/8 w - -":  # bm #6
         args.excludeAllowingCapture = True
         args.excludeAllowingMoves = "h2h1q"
+        args.depth = 11 if args.depth is None else args.depth
     elif epd == "8/4p2p/8/8/8/8/6p1/2B1K1kb w - -":  # bm #7
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "g1"
@@ -884,6 +892,11 @@ if __name__ == "__main__":
         help="EPD for the root position. If bm is not given, it is assumed that the side to move is mating.",
     )
     parser.add_argument(
+        "--depth",
+        type=int,
+        help="Maximal depth for the to be constructed game tree (a too low value means mate cannot be found).",
+    )
+    parser.add_argument(
         "--openingMoves",
         help="Comma separated opening lines in UCI notation that specify the mating side's moves. In each line a single placeholder '*' is allowed for the defending side.",
     )
@@ -962,7 +975,7 @@ if __name__ == "__main__":
         "--limitTime", help="engine's time limit (in seconds) per position"
     )
     parser.add_argument("--mateNodes", help="engine's nodes limit per mate found")
-    parser.add_argument("--mateDepth", help="engine's depth limt per mate found")
+    parser.add_argument("--mateDepth", help="engine's depth limit per mate found")
     parser.add_argument(
         "--mateTime", help="engine's time limit (in seconds) per mate found"
     )
@@ -998,6 +1011,7 @@ if __name__ == "__main__":
     fill_exclude_options(args)
     options = [
         ("epd", args.epd),
+        ("depth", args.depth),
         ("openingMoves", args.openingMoves),
         ("excludeMoves", args.excludeMoves),
         ("excludeSANs", args.excludeSANs),
@@ -1031,7 +1045,7 @@ if __name__ == "__main__":
             f"--{k}"
             if type(v) == bool
             else f'--{k} "{v}"'
-            if " " in v
+            if " " in str(v)
             else f"--{k} {v}"
             for k, v in options
             if v is not None and str(v) != "False"
