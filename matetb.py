@@ -763,7 +763,7 @@ def fill_exclude_options(args):
         "n1K5/bNp1p1p1/1pP3p1/1k2p3/1N3n2/PP4p1/4rpP1/5B2 w - -",  # bm #101
     ]:
         args.excludeFrom = "a3 b3 b4 b7 c6 g2"
-        args.excludeAllowingToCapturable = True
+        args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "a8 b5 b6 c7 e2 f1 g3 g2 d3"
         args.excludeTo = "a8"
         args.excludeToCapturable = True
