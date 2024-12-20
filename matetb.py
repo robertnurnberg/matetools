@@ -521,6 +521,7 @@ def fill_exclude_options(args):
         args.excludeFrom = "b1"
         args.excludeTo = "b3"
         args.excludeToCapturable = True
+        args.depth = 15 if args.depth is None else args.depth
     elif epd == "k7/2Q5/8/2p5/1pp5/1pp5/prp5/nbK5 w - -":  # bm #11
         args.excludeFrom = "c1"
         args.excludeTo = "b2"
