@@ -497,6 +497,14 @@ def fill_exclude_options(args):
     ):
         return
     epd = " ".join(args.epd.split()[:4])
+    if epd == "8/8/7p/5K1k/R7/8/8/8 w - -":  # bm #6
+        args.excludeAllowingCapture = True
+        args.excludeAllowingMoves = "h2h1q"
+        args.depth = 11 if args.depth is None else args.depth
+    elif epd == "8/4p2p/8/8/8/8/6p1/2B1K1kb w - -":  # bm #7
+        args.excludeAllowingCapture = True
+        args.excludeAllowingFrom = "g1"
+        args.excludeAllowingMoves = "e6e5 e5e4"
     if epd == "8/8/7P/8/pp6/kp6/1p6/1Kb5 w - -":  # bm #7
         args.excludeFrom = "b1"
         args.excludeCaptures = True
@@ -524,18 +532,18 @@ def fill_exclude_options(args):
     elif epd == "8/8/1p6/1p6/1p6/1p6/pppbK3/rbk3N1 w - -":  # bm #13
         args.excludeFrom = "e2"
         args.excludeToCapturable = True
+    elif epd in [
+        "8/8/8/6r1/8/6B1/p1p5/k1Kb4 w - -",  # bm #7
+        "k7/8/1Qp5/2p5/2p5/6p1/2p1ppp1/2Kbrqrn w - -",  # bm #15
+    ]:
+        args.excludeFrom = "c1"
+        args.excludeToCapturable = True
     elif epd == "8/8/8/2p5/1pp5/brpp4/1pprp2P/qnkbK3 w - -":  # bm #15
         args.excludeFrom = "e1"
         args.excludePromotionTo = "qrb"
         args.excludeToCapturable = True
     elif epd == "4k3/6Q1/8/8/5p2/1p1p1p2/1ppp1p2/nrqrbK2 w - -":  # bm #15
         args.excludeFrom = "f1"
-        args.excludeToCapturable = True
-    elif epd in [
-        "8/8/8/6r1/8/6B1/p1p5/k1Kb4 w - -",  # bm #7
-        "k7/8/1Qp5/2p5/2p5/6p1/2p1ppp1/2Kbrqrn w - -",  # bm #15
-    ]:
-        args.excludeFrom = "c1"
         args.excludeToCapturable = True
     elif epd == "8/8/8/2p5/1pp5/brpp4/qpprp2P/1nkbnK2 w - -":  # bm #16
         args.openingMoves = "f1e1"
@@ -595,8 +603,8 @@ def fill_exclude_options(args):
         args.excludeFrom = "d1"
         args.excludeAllowingCapture = True
     elif epd in [
-        "8/8/8/1p6/6k1/1p2Q3/p1p1p3/rbrbK3 w - -",  # bm #36
         "8/8/8/1p6/6k1/1Q6/p1p1p3/rbrbK3 b - -",  # bm #-35
+        "8/8/8/1p6/6k1/1p2Q3/p1p1p3/rbrbK3 w - -",  # bm #36
     ]:
         args.excludeFrom = "e1"
         args.excludeTo = "a1 c1"
@@ -618,30 +626,46 @@ def fill_exclude_options(args):
     ]:
         args.excludeFrom = "e1"
         args.excludeAllowingCapture = True
+    elif epd == "8/7p/7p/7p/1p3Q1p/1Kp5/nppr4/qrk5 w - -":  # bm #54
+        args.excludeFrom = "b3"
+        args.excludeAllowingCapture = True
+        args.excludeAllowingFrom = "b1 h1"
+        args.excludeAllowingMoves = "c3c2"
     elif epd in [
         "8/1p6/4k3/8/3p1Q2/3p4/pp1p4/rrbK4 w - -",  # bm #56
         "8/6pp/5p2/k7/3p4/1Q2p3/3prpp1/3Kbqrb w - -",  # bm #57
     ]:
         args.excludeFrom = "d1"
         args.excludeToAttacked = True
-    elif epd == "8/8/7p/5K1k/R7/8/8/8 w - -":  # bm #6
-        args.excludeAllowingCapture = True
-        args.excludeAllowingMoves = "h2h1q"
-        args.depth = 11 if args.depth is None else args.depth
-    elif epd == "8/4p2p/8/8/8/8/6p1/2B1K1kb w - -":  # bm #7
-        args.excludeAllowingCapture = True
-        args.excludeAllowingFrom = "g1"
-        args.excludeAllowingMoves = "e6e5 e5e4"
-    elif epd == "8/7p/7p/7p/1p3Q1p/1Kp5/nppr4/qrk5 w - -":  # bm #54
-        args.excludeFrom = "b3"
-        args.excludeAllowingCapture = True
-        args.excludeAllowingFrom = "b1 h1"
-        args.excludeAllowingMoves = "c3c2"
     elif epd == "5Q2/p1p5/p1p5/6rp/7k/6p1/p1p3P1/rbK5 w - -":  # bm #60 (finds #62)
         args.excludeFrom = "c1 g2"
         args.excludeTo = "a1 g3"
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "h5"
+    elif epd in [
+        "4R3/1n1p4/3n4/8/8/p4p2/7p/5K1k w - -",  # bm #20
+        "4R3/1n1p1p2/3n4/8/8/p4p2/7p/5K1k w - -",  # bm #32
+        "4R3/pn1p1p1p/p2n4/8/8/p4p2/7p/5K1k w - -",  # bm #69
+    ]:
+        args.openingMoves = (
+            "e8e1 d6e4 e1e4 f3f2 f1f2 * e4e1, e8e1 d6e4 e1e4 * e4e1, e8e1 * f1f2"
+        )
+        args.excludeSANs = (
+            "Ra2 Ra3 Ra4 Ra5 Ra6 Ra7 Ra8 "
+            + "Rb2 Rb3 Rb4 Rb5 Rb6 Rb7 Rb8 "
+            + "Rc2 Rc3 Rc4 Rc5 Rc6 Rc7 Rc8 "
+            + "Rd2 Rd3 Rd4 Rd5 Rd6 Rd7 Rd8 "
+            + "Re2 Re3 Re4 Re5 Re6 Re7 Re8 "
+            + "Rf2 Rf3 Rf4 Rf5 Rf6 Rf7 Rf8 "
+            + "Rg2 Rg3 Rg4 Rg5 Rg6 Rg7 Rg8 "
+            + "Rh2 Rh3 Rh4 Rh5 Rh6 Rh7 Rh8 "
+        )
+        args.excludeAllowingCapture = True
+        args.excludeAllowingFrom = "a1 d1 f1 h1"
+        if args.engine is not None:
+            args.analyseAll = True
+            if not (args.limitNodes or args.limitDepth or args.limitTime):
+                args.limitDepth = "2"
     elif epd == "8/1p4Pp/1p6/1p6/1p5p/5r1k/5p1p/5Kbr w - -":  # bm #72
         args.openingMoves = "g7g8q"
         args.excludeFrom = "f1"
@@ -664,15 +688,19 @@ def fill_exclude_options(args):
         args.excludeAllowingCapture = True
         args.excludeAllowingFrom = "b3 h5 h4"
     elif epd in [
-        "8/p7/8/p7/b3Q3/K7/p1r5/rk6 w - -",  # bm #10
-        "8/p7/8/p7/b3Q3/K6p/p1r5/rk6 w - -",  # bm #22
-        "8/p6p/7p/p6p/b3Q2p/K6p/p1r5/rk6 w - -",  # bm #120
+        "8/8/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #7
+        "8/7p/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #27
+        "8/5ppp/5p2/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #87
     ]:
-        args.excludeFrom = "a3"
-        args.excludeTo = "a1"
+        args.excludeSANs = "Nb6 Nb5 Nc4"
+        args.excludeFrom = "a4 b3 d3"
         args.excludeAllowingCapture = True
-        args.excludeAllowingFrom = "a1 h1"
-        args.excludeAllowingSANs = "Kb1 Kc2 Kd1 Kd2"
+        if args.engine is None:
+            print("For this position --engine needs to be specified.")
+            exit(1)
+        args.analyseAll = True
+        if not (args.limitNodes or args.limitDepth or args.limitTime):
+            args.limitDepth = "2"
     elif epd in [
         "8/5P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #10
         "8/3p1P2/8/8/8/n7/1pppp2K/br1r1kn1 w - -",  # bm #28
@@ -706,53 +734,6 @@ def fill_exclude_options(args):
         args.excludeAllowingFrom = "b2 c2 d2 e2"
         args.excludeAllowingSANs = "Ke3 Kf3 Kh1 Kg2 Kh2"
     elif epd in [
-        "8/8/6p1/6Pb/p3P1k1/P1p1PNnr/2P1PKRp/7B w - -",  # bm #12
-        "8/4p3/6p1/6Pb/p3P1k1/P1p1PNnr/2P1PKRp/7B w - -",  # bm #34
-        "8/p1p1p3/2p3p1/6Pb/p3P1k1/P1p1PNnr/2P1PKRp/7B w - -",  # bm #100
-    ]:
-        args.excludeSANs = "Rf2"
-        args.excludeFrom = "f3 e4"
-        args.excludeAllowingCapture = True
-    elif epd in [
-        "4R3/1n1p4/3n4/8/8/p4p2/7p/5K1k w - -",  # bm #20
-        "4R3/1n1p1p2/3n4/8/8/p4p2/7p/5K1k w - -",  # bm #32
-        "4R3/pn1p1p1p/p2n4/8/8/p4p2/7p/5K1k w - -",  # bm #69
-    ]:
-        args.openingMoves = (
-            "e8e1 d6e4 e1e4 f3f2 f1f2 * e4e1, e8e1 d6e4 e1e4 * e4e1, e8e1 * f1f2"
-        )
-        args.excludeSANs = (
-            "Ra2 Ra3 Ra4 Ra5 Ra6 Ra7 Ra8 "
-            + "Rb2 Rb3 Rb4 Rb5 Rb6 Rb7 Rb8 "
-            + "Rc2 Rc3 Rc4 Rc5 Rc6 Rc7 Rc8 "
-            + "Rd2 Rd3 Rd4 Rd5 Rd6 Rd7 Rd8 "
-            + "Re2 Re3 Re4 Re5 Re6 Re7 Re8 "
-            + "Rf2 Rf3 Rf4 Rf5 Rf6 Rf7 Rf8 "
-            + "Rg2 Rg3 Rg4 Rg5 Rg6 Rg7 Rg8 "
-            + "Rh2 Rh3 Rh4 Rh5 Rh6 Rh7 Rh8 "
-        )
-        args.excludeAllowingCapture = True
-        args.excludeAllowingFrom = "a1 d1 f1 h1"
-        if args.engine is not None:
-            args.analyseAll = True
-            if not (args.limitNodes or args.limitDepth or args.limitTime):
-                args.limitDepth = "2"
-
-    elif epd in [
-        "8/8/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #7
-        "8/7p/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #27
-        "8/5ppp/5p2/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #87
-    ]:
-        args.excludeSANs = "Nb6 Nb5 Nc4"
-        args.excludeFrom = "a4 b3 d3"
-        args.excludeAllowingCapture = True
-        if args.engine is None:
-            print("For this position --engine needs to be specified.")
-            exit(1)
-        args.analyseAll = True
-        if not (args.limitNodes or args.limitDepth or args.limitTime):
-            args.limitDepth = "2"
-    elif epd in [
         "7K/8/8/8/4n3/pp1N3p/rp2N1br/bR3n1k w - -",  # bm #3
         "7K/8/8/7p/p3n3/1p1N3p/rp2N1br/bR3n1k w - -",  # bm #31
         "7K/3p4/4p3/1p5p/p3n3/1p1N3p/rp2N1br/bR3n1k w - -",  # bm #96
@@ -768,22 +749,13 @@ def fill_exclude_options(args):
         if not (args.limitNodes or args.limitDepth or args.limitTime):
             args.limitDepth = "10"
     elif epd in [
-        "r1b5/1pKp4/pP1P4/P6B/3pn3/1P1k4/1P6/5N1N w - -",  # bm #4
-        "r1b5/1pKp4/pP1P4/P6B/3pn2p/1P1k4/1P6/5N1N w - -",  # bm #26
-        "r1b5/1pKp4/pP1P1p1p/P4p1B/3pn2p/1P1k4/1P6/5N1N w - -",  # bm #121
+        "8/8/6p1/6Pb/p3P1k1/P1p1PNnr/2P1PKRp/7B w - -",  # bm #12
+        "8/4p3/6p1/6Pb/p3P1k1/P1p1PNnr/2P1PKRp/7B w - -",  # bm #34
+        "8/p1p1p3/2p3p1/6Pb/p3P1k1/P1p1PNnr/2P1PKRp/7B w - -",  # bm #100
     ]:
-        args.openingMoves = "h5d1"
-        args.excludeFrom = "d1 f1 h1 b2 b3 a5 b6 d6"
-        args.excludeTo = "c8"
-        args.excludeAllowingFrom = "d3 d4 a6 b7 c8 d7"
-        args.excludeAllowingTo = "d1 f1 h1"
-        if args.engine is None:
-            print("For this position --engine needs to be specified.")
-            exit(1)
-        args.analyseFrom = "e4"
-        args.analyseTo = "d1 f1 h1 b2 b3 a5 b6 d6"
-        if not (args.limitNodes or args.limitDepth or args.limitTime):
-            args.limitDepth = "10"
+        args.excludeSANs = "Rf2"
+        args.excludeFrom = "f3 e4"
+        args.excludeAllowingCapture = True
     elif epd in [
         "n1K5/bNp5/1pP5/1k4p1/1N2pnp1/PP2p1p1/4rpP1/5B2 w - -",  # bm #16
         "n1K5/bNp1p3/1pP5/1k4p1/1N3np1/PP2p1p1/4rpP1/5B2 w - -",  # bm #35
@@ -813,24 +785,6 @@ def fill_exclude_options(args):
         args.excludeTo = "g3"
         args.excludeAllowingFrom = "a1 a2 d5"
         args.excludeAllowingCapture = True
-        if args.engine is None:
-            print("For this position --engine needs to be specified.")
-            exit(1)
-        args.analyseAll = True
-        if not (args.limitNodes or args.limitDepth or args.limitTime):
-            args.limitDepth = "10"
-    elif epd in [
-        "n7/b1p1K3/1pP5/1P6/7p/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #6
-        "n7/b1p1K3/1pP5/1P6/6pp/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #9
-        "n7/b1p1K3/1pP5/1P4p1/6pp/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #92
-        "n7/b1p1K3/1pP4p/1P4p1/6p1/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #126
-    ]:
-        args.excludeFrom = "b2 d1 e1 b5 c6"
-        args.excludeTo = "a8 b6 c7 b3"
-        args.excludeMoves = "e2g1 e2c1 e2c3 e2d4 e2f4 g3h1 g3h5 g3f5 g3e4 g3f1"
-        args.excludeToCapturable = True
-        args.excludePromotionTo = "qrbn"
-        args.excludeAllowingFrom = "a8 b6 c7 h2 f1"
         if args.engine is None:
             print("For this position --engine needs to be specified.")
             exit(1)
@@ -868,7 +822,34 @@ def fill_exclude_options(args):
             args.limitDepth = "24"
             args.limitNodes = "100000"
             args.mateDepth = "32"
-    elif epd == "8/1p1p4/3p2p1/5pP1/1p3P1k/1P1p1P1p/1P1P1P1K/7B w - -":  # bm #121;
+    elif epd in [
+        "8/p7/8/p7/b3Q3/K7/p1r5/rk6 w - -",  # bm #10
+        "8/p7/8/p7/b3Q3/K6p/p1r5/rk6 w - -",  # bm #22
+        "8/p6p/7p/p6p/b3Q2p/K6p/p1r5/rk6 w - -",  # bm #120
+    ]:
+        args.excludeFrom = "a3"
+        args.excludeTo = "a1"
+        args.excludeAllowingCapture = True
+        args.excludeAllowingFrom = "a1 h1"
+        args.excludeAllowingSANs = "Kb1 Kc2 Kd1 Kd2"
+    elif epd in [
+        "r1b5/1pKp4/pP1P4/P6B/3pn3/1P1k4/1P6/5N1N w - -",  # bm #4
+        "r1b5/1pKp4/pP1P4/P6B/3pn2p/1P1k4/1P6/5N1N w - -",  # bm #26
+        "r1b5/1pKp4/pP1P1p1p/P4p1B/3pn2p/1P1k4/1P6/5N1N w - -",  # bm #121
+    ]:
+        args.openingMoves = "h5d1"
+        args.excludeFrom = "d1 f1 h1 b2 b3 a5 b6 d6"
+        args.excludeTo = "c8"
+        args.excludeAllowingFrom = "d3 d4 a6 b7 c8 d7"
+        args.excludeAllowingTo = "d1 f1 h1"
+        if args.engine is None:
+            print("For this position --engine needs to be specified.")
+            exit(1)
+        args.analyseFrom = "e4"
+        args.analyseTo = "d1 f1 h1 b2 b3 a5 b6 d6"
+        if not (args.limitNodes or args.limitDepth or args.limitTime):
+            args.limitDepth = "10"
+    elif epd == "8/1p1p4/3p2p1/5pP1/1p3P1k/1P1p1P1p/1P1P1P1K/7B w - -":  # bm #121
         args.excludeCaptures = True
         args.excludeFrom = "h1"
         if args.engine is None:
@@ -879,6 +860,24 @@ def fill_exclude_options(args):
             args.limitDepth = "34"
         if not args.hash:
             args.hash = 1024
+    elif epd in [
+        "n7/b1p1K3/1pP5/1P6/7p/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #6
+        "n7/b1p1K3/1pP5/1P6/6pp/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #9
+        "n7/b1p1K3/1pP5/1P4p1/6pp/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #92
+        "n7/b1p1K3/1pP4p/1P4p1/6p1/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #126
+    ]:
+        args.excludeFrom = "b2 d1 e1 b5 c6"
+        args.excludeTo = "a8 b6 c7 b3"
+        args.excludeMoves = "e2g1 e2c1 e2c3 e2d4 e2f4 g3h1 g3h5 g3f5 g3e4 g3f1"
+        args.excludeToCapturable = True
+        args.excludePromotionTo = "qrbn"
+        args.excludeAllowingFrom = "a8 b6 c7 h2 f1"
+        if args.engine is None:
+            print("For this position --engine needs to be specified.")
+            exit(1)
+        args.analyseAll = True
+        if not (args.limitNodes or args.limitDepth or args.limitTime):
+            args.limitDepth = "10"
 
 
 if __name__ == "__main__":
