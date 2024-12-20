@@ -497,7 +497,7 @@ def fill_exclude_options(args):
     ):
         return
     epd = " ".join(args.epd.split()[:4])
-    if epd == "8/8/7P/8/pp6/kp6/1p6/1Kb5 w - -":  # bm 7
+    if epd == "8/8/7P/8/pp6/kp6/1p6/1Kb5 w - -":  # bm #7
         args.excludeFrom = "b1"
         args.excludeCaptures = True
         args.excludePromotionTo = "qrb"
