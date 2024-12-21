@@ -350,8 +350,8 @@ class MateTB:
         with open(filename, "w") as f:
             for fen, idx in self.fen2index.items():
                 s = self.tb[idx][0]
-                bmstr = "" if s in [0, None] else f"bm #{score2mate(s)};"
-                f.write(f"{fen} {bmstr}\n")
+                bmstr = "" if s in [0, None] else f" bm #{score2mate(s)};"
+                f.write(f"{fen}{bmstr}\n")
         print(f"Wrote TB to {filename}.")
 
     def probe_tb(self, fen):
