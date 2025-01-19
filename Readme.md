@@ -15,8 +15,12 @@ into the format
 <FEN>' bm #'<bm>';'{' PV: '<PV>}';'{<comments>}
 ```
 where `PV` is a *proven* PV for the claimed mate.
+A compressed collection of 1 million proven mates is provided in
+[`fishmates.epd.gz`](fishmates.epd.gz).
 
-To this end the following scripts are provided:
+## Scripts
+
+The following scripts are provided:
 
 * `addpvs.py`: adds (missing) PVs to a given EPD file using a local engine (the
   script uses concurrency, results are available once _all_ positions have been
@@ -35,6 +39,8 @@ To this end the following scripts are provided:
 * `shortenpvs.py`: removes moves from the end of existing PVs (only used in
   development, for debugging other scripts)
 * `sortbymates.py`: sorts the positions in an EPD file
+
+## Mate collections
 
 By way of example, the following EPD files are provided:
 
