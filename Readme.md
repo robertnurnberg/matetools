@@ -58,9 +58,6 @@ See [plot](images/matedtrack.png?raw=true).
 See [plot](images/mates2000.png?raw=true).
 * `fishmates.epd.gz`: A collection of 1M mates from LTC fishtest games, ranging from #3 to #35. The positions have between 6 and 31 pieces, and in 202213 positions the side to move is going to get mated.
 See [plot](images/fishmates.png?raw=true). 
-Note: Some of the `bm` values at present are only upper bounds for the fastest
-possible mate, 
-see [WIP](https://github.com/robertnurnberg/matetools/pull/86) for improvements.
 
 ### Automatic creation of new test positions
 
