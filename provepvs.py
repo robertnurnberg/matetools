@@ -126,11 +126,9 @@ class Analyser:
         limit = chess.engine.Limit(mate=abs(bm)) if do_mate_fill else self.limit
 
         bestm, bestpv = None, None
+        oldpv = pv
         while True:
-            print(
-                f'Analysing "{board.epd()}" to {limit}.',
-                flush=True,
-            )
+            print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
             info = filtered_analysis(self.engine, board, limit, game=board)
             m, pv = None, None
             if "score" in info:
@@ -152,7 +150,8 @@ class Analyser:
                 pv = [m.uci() for m in info["pv"]]
             if self.longestPV:
                 if pv is None:  # if no mate is found anymore, return best found
-                    return bestm, bestpv
+                    m, pv = bestm, bestpv
+                    break
                 if bestpv is None or abs(m) < abs(bestm) or len(pv) > len(bestpv):
                     bestm, bestpv = m, pv
             elif self.completePV:
@@ -161,6 +160,13 @@ class Analyser:
             else:
                 break
             limit = chess.engine.Limit(depth=depth + 1)
+
+        if args.goForward:
+            pvStr = " ".join(oldpv)
+            print(
+                f'Begin forward analysis of PV {pvStr} for "{fen}" with bm #{bm} ...',
+                flush=True,
+            )
 
         return m, pv
 
@@ -280,6 +286,11 @@ if __name__ == "__main__":
         help="Filter the PVs to be loaded by status: ok, short, long, draw, wrong, all.",
     )
     parser.add_argument(
+        "--goForward",
+        action="store_true",
+        help="Check optimality of PVs by doing a forward analysis as well.",
+    )
+    parser.add_argument(
         "--logFile",
         help="Optional file to log the engine's output while it is analysing.",
     )
@@ -297,6 +308,7 @@ if __name__ == "__main__":
         args.nodesFill = eval(args.nodesFill)
     assert not (args.completePV and args.longestPV), "Choose one of the two."
     assert not args.longestPV or args.mateFill != "None", "Need --mateFill."
+    assert not args.goForward or args.pvFile == args.epdFile, "Names need to match."
 
     p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
@@ -334,7 +346,7 @@ if __name__ == "__main__":
                 _, _, pv = line.partition("; PV: ")
                 pv, _, _ = pv[:-1].partition(";")  # remove '\n'
                 pv = pv.split()
-                if pv_status(fen, bm, pv) != "ok" and fen in d:
+                if (args.goForward or pv_status(fen, bm, pv) != "ok") and fen in d:
                     ana_fens.append((fen, *d[fen], pv))
 
     total_count = len(ana_fens)
