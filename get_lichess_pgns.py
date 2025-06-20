@@ -24,6 +24,13 @@ def get_lichess_game(fen, db="lichess"):
     for key in ["recentGames", "topGames"]:
         if key in json and json[key] and "id" in json[key][0]:
             return json[key][0]["id"]
+
+    if "moves" in json:
+        for m in json["moves"]:
+            print("m = ", m)
+            if "game" in m and m["game"] and "id" in m["game"]:
+                return m["game"]["id"]
+
     return ""
 
 
