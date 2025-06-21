@@ -2,7 +2,7 @@ import argparse, lichess.api, requests, time
 
 
 def get_lichess_game(fen, db="lichess"):
-    url = f"https://explorer.lichess.ovh/{db}?fen={fen}&topGames=1&recentGames=1"
+    url = f"https://explorer.lichess.ovh/{db}?fen={fen}"
     if args.verbose >= 3:
         print(f"URL: {url}")
     timeout = status = 1
@@ -21,9 +21,11 @@ def get_lichess_game(fen, db="lichess"):
             timeout *= 2
             assert timeout < 3600, "timeout > 1h, stopping."
 
-    for key in ["recentGames", "topGames"]:
-        if key in json and json[key] and "id" in json[key][0]:
-            return json[key][0]["id"]
+    for key in ["topGames", "recentGames"]:
+        if key in json and json[key]:
+            for g in json[key]:
+                if "id" in g:
+                    return g["id"]
 
     if "moves" in json:
         for m in json["moves"]:
