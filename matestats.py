@@ -12,7 +12,7 @@ def open_file(filename):
 class data:
     def __init__(self, filename, debug=False):
         self.plies = Counter()
-        p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+        p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
         loaded = set()
         self.bmplus = self.bmminus = 0
         with open_file(filename) as f:

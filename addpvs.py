@@ -135,7 +135,7 @@ if __name__ == "__main__":
         args.nodes = eval(args.nodes)
 
     ana = Analyser(args)
-    p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+    p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
     print("Loading FENs ...")
 
