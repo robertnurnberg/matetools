@@ -28,7 +28,7 @@ if __name__ == "__main__":
         help="output file with deduced positions, their mate scores and PVs",
     )
     args = parser.parse_args()
-    p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+    p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
     fencount = 0
     d = {}  # the dict will hold the shortest mates, with longest PVs

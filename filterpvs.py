@@ -52,7 +52,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+    p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
     filtered = []
     allowed = args.status.split("+")
