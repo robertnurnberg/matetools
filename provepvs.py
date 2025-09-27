@@ -300,7 +300,7 @@ if __name__ == "__main__":
     assert not (args.completePV and args.longestPV), "Choose one of the two."
     assert not args.longestPV or args.mateFill != "None", "Need --mateFill."
 
-    p = re.compile("([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+    p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
 
     d = {}  # prepare "cheat sheet" from given mate PVs
     allowed = args.PVstatus.split("+")
