@@ -60,7 +60,7 @@ See [plot](images/mates2000.png?raw=true).
 See [plot](images/fishmates.png?raw=true). 
 Note: Some of the `bm` values at present are only upper bounds for the fastest
 possible mate,
-see [WIP](https://github.com/robertnurnberg/matetools/pull/94) for improvements.
+see [WIP](https://github.com/robertnurnberg/matetools/pull/96) for improvements.
 
 ### Automatic creation of new test positions
 
