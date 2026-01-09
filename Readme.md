@@ -36,6 +36,7 @@ The following scripts are provided:
 * `provepvs.py`: uses conjectured PVs to guide a local engine to find mates and
   prove PVs (the script works sequentially, proven PVs are available
   immediately)
+* `retrocheck.py`: similarly to `matecheck.py` from [vondele/matetrack](https://github.com/vondele/matetrack), but for each position first performs a retrograde analysis using the given PV
 * `shortenpvs.py`: removes moves from the end of existing PVs (only used in
   development, for debugging other scripts)
 * `sortbymates.py`: sorts the positions in an EPD file
