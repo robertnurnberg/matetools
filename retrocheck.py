@@ -58,7 +58,7 @@ class Analyser:
             # now do a retrograde analysis
             while board.move_stack:
                 if bool(board.legal_moves) and self.limitFill:
-                    engine.analysis(board, self.limitFill, game=board)
+                    engine.analyse(board, self.limitFill, game=board)
                 board.pop()
 
             # finally do the actual analysis for the given fen
