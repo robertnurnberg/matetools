@@ -1,4 +1,4 @@
-import argparse, random, re, sys, concurrent.futures, chess, chess.engine, chess.syzygy
+import argparse, random, re, sys, concurrent.futures, chess, chess.engine, chess.syzygy, logging
 from time import time
 from multiprocessing import freeze_support, cpu_count
 from tqdm import tqdm
@@ -158,6 +158,10 @@ if __name__ == "__main__":
         default=["matetrackpv.epd"],
         help="file(s) containing the positions, their mate scores and a mating line",
     )
+    parser.add_argument(
+        "--logFile",
+        help="Optional file to log the engine's output while it is analysing.",
+    )
     args = parser.parse_args()
     if args.nodes is None and args.depth is None and args.time is None:
         args.nodes = 10**6
@@ -171,6 +175,10 @@ if __name__ == "__main__":
         "true",
         "false",
     ], "--syzygy50MoveRule expects True/False."
+
+    if args.logFile:
+        print(f"Logging of engine output to {args.logFile} enabled.")
+        logging.basicConfig(filename=args.logFile, level=logging.DEBUG)
 
     ana = Analyser(args)
     p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
