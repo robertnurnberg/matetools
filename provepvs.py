@@ -60,9 +60,7 @@ class Analyser:
 
     def analyze_fen(self, fen, bm, pv):
         board = chess.Board(fen)
-        # first clear hash with a simple d1 search
-        self.engine.analyse(board, chess.engine.Limit(depth=1), game=board)
-        # now walk to PV leaf node
+        # first walk to PV leaf node
         ply, pvmate = 0, bm
         for move in pv:
             board.push(chess.Move.from_uci(move))
@@ -87,7 +85,7 @@ class Analyser:
                     f'Analysing "{board.epd()}" (after move {board.peek().uci()}) to {limit}.',
                     flush=True,
                 )
-                info = filtered_analysis(self.engine, board, limit)
+                info = filtered_analysis(self.engine, board, limit, game=board)
                 if "score" in info:
                     score = info["score"].pov(board.turn)
                     depth = info["depth"] if "depth" in info else None
@@ -133,7 +131,7 @@ class Analyser:
                 f'Analysing "{board.epd()}" to {limit}.',
                 flush=True,
             )
-            info = filtered_analysis(self.engine, board, limit)
+            info = filtered_analysis(self.engine, board, limit, game=board)
             m, pv = None, None
             if "score" in info:
                 score = info["score"].pov(board.turn)
