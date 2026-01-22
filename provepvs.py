@@ -167,6 +167,32 @@ class Analyser:
                 f'Begin forward analysis of PV {pvStr} for "{fen}" with bm #{bm} ...',
                 flush=True,
             )
+            ply, pvmate = 0, bm
+            for move in oldpv:
+                board.push(chess.Move.from_uci(move))
+                ply += 1
+                pvmate = -pvmate + (1 if pvmate > 0 else 0)
+                if pvmate <= 0:
+                    continue
+                # try to see if the last defensive move was sub-optimal
+                limit = self.limit
+                limit.mate = max(1, pvmate - 1)
+                print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
+                info = filtered_analysis(self.engine, board, limit, game=board)
+                if "score" not in info:
+                    continue
+                score = info["score"].pov(board.turn)
+                m = score.mate()
+                depth = info["depth"] if "depth" in info else None
+                nodes = info["nodes"] if "nodes" in info else None
+                localpv = [m.uci() for m in info["pv"]] if "pv" in info else []
+                print(
+                    f"ply {ply:3d}, score {score}, mate {m} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
+                )
+                if m and m < pvmate:
+                    print(
+                        f"Previous move was sub-optimal, allowing mate in {m} rather than in {pvmate}."
+                    )
 
         return m, pv
 
@@ -288,7 +314,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--goForward",
         action="store_true",
-        help="Check optimality of PVs by doing a forward analysis as well.",
+        help="Check optimality of PVs by doing a forward analysis using the limits for the root position.",
     )
     parser.add_argument(
         "--logFile",
