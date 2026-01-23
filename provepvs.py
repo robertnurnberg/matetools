@@ -1,4 +1,4 @@
-import argparse, chess, chess.engine, logging, os, re
+import argparse, chess, chess.engine, copy, logging, os, re
 
 
 def pv_status(fen, mate, pv):
@@ -115,7 +115,7 @@ class Analyser:
                                 print(
                                     "Warning: the shorter mate cannot be trusted (there may be better defenses)."
                                 )
-                            return newbm, newpv
+                            return newbm, newpv, False  # TODO: Align with --goForward
 
             board.pop()
             ply -= 1
@@ -162,39 +162,78 @@ class Analyser:
             limit = chess.engine.Limit(depth=depth + 1)
 
         if args.goForward:
-            pvStr = " ".join(oldpv)
+            ff = False
+            if m is None or abs(m) > abs(bm) or (m == bm and len(pv) <= len(oldpv)):
+                m, pv = bm, oldpv
+            pvStr = " ".join(pv)
             print(
                 f'Begin forward analysis of PV {pvStr} for "{fen}" with bm #{bm} ...',
                 flush=True,
             )
             ply, pvmate = 0, bm
-            for move in oldpv:
+            while ply < len(pv):
+                move = pv[ply]
                 board.push(chess.Move.from_uci(move))
                 ply += 1
                 pvmate = -pvmate + (1 if pvmate > 0 else 0)
-                if pvmate <= 0:
+
+                if pvmate <= 0 or board.is_checkmate():
                     continue
-                # try to see if the last defensive move was sub-optimal
-                limit = self.limit
+
+                # try to see if the last defensive move was suboptimal
+                limit = copy.copy(self.limit)
                 limit.mate = max(1, pvmate - 1)
                 print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
                 info = filtered_analysis(self.engine, board, limit, game=board)
                 if "score" not in info:
                     continue
                 score = info["score"].pov(board.turn)
-                m = score.mate()
+                localm = score.mate()
                 depth = info["depth"] if "depth" in info else None
                 nodes = info["nodes"] if "nodes" in info else None
-                localpv = [m.uci() for m in info["pv"]] if "pv" in info else []
+                localpv = [mv.uci() for mv in info["pv"]] if "pv" in info else []
                 print(
-                    f"ply {ply:3d}, score {score}, mate {m} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
+                    f"ply {ply:3d}, score {score}, mate {localm} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
                 )
-                if m and m < pvmate:
-                    print(
-                        f"Previous move was sub-optimal, allowing mate in {m} rather than in {pvmate}."
-                    )
 
-        return m, pv
+                if localm is not None and localm < pvmate:
+                    print(
+                        f"Previous move was suboptimal, allowing mate in {localm} rather than in {pvmate}."
+                    )
+                    # step back to the defender's turn and find better defense
+                    board.pop()
+                    ply -= 1
+                    pvmate = -pvmate
+                    limit = copy.copy(self.limit)
+                    limit.mate = -pvmate
+                    print(
+                        f'Analysing "{board.epd()}" for better defense to {limit}.',
+                        flush=True,
+                    )
+                    info = filtered_analysis(self.engine, board, limit, game=board)
+
+                    if "score" in info and "pv" in info:
+                        score = info["score"].pov(board.turn)
+                        dm = score.mate()
+                        depth = info["depth"] if "depth" in info else None
+                        nodes = info["nodes"] if "nodes" in info else None
+                        localpv = (
+                            [mv.uci() for mv in info["pv"]] if "pv" in info else []
+                        )
+                        print(
+                            f"ply {ply:3d}, score {score}, mate {dm} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
+                        )
+                        if dm and abs(dm) <= abs(pvmate):
+                            pv = pv[:ply] + [mv.uci() for mv in info["pv"]]
+                            print(
+                                f"Corrected PV found for ply {ply+1}. Continuing optimality check..."
+                            )
+                            print(f"New PV:", " ".join(pv))
+                            ff = True
+                            continue
+            return m, pv, ff
+
+        return m, pv, False
 
 
 class HelpFormatter(argparse.ArgumentDefaultsHelpFormatter):
@@ -389,12 +428,17 @@ if __name__ == "__main__":
         for i, (fen, bm, pv, oldpv) in enumerate(ana_fens):
             print(f'{i+1}/{total_count} "{fen}" with bm #{bm} ...', flush=True)
 
-            m, pv = ana.analyze_fen(fen, bm, pv)
+            m, pv, ff = ana.analyze_fen(fen, bm, pv)
 
             if m is None or pv is None:
                 continue
 
-            print(f"Found mate #{m}!")
+            if args.goForward:
+                print(f"Forward analysis return with #{m} for bm #{bm}.")
+                if ff:
+                    print("The old PV was suboptimal!")
+            else:
+                print(f"Found mate #{m}!")
             status = pv_status(fen, m, pv)
             if abs(m) < abs(bm):
                 print(
@@ -407,7 +451,10 @@ if __name__ == "__main__":
                     print(
                         f"PV has status {status} and length {len(pv)} <= {len(oldpv)}, so no improvement."
                     )
-                    pv = None
+                    if ff:
+                        print(f"Old PV failed forward analysis, so save improved one.")
+                    else:
+                        pv = None
                 else:
                     print(
                         f"PV has status {status} and length {len(pv)} > {len(oldpv)}."
