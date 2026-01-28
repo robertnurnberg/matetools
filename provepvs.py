@@ -472,8 +472,9 @@ if __name__ == "__main__":
                 print("Save PV to file.")
                 l = f"{fen} bm #{bm};"
                 if pv:
-                    l += f" PV: {' '.join(pv)};\n"
+                    l += f" PV: {' '.join(pv)};"
                     count += 1
+                l += "\n"
                 f.write(l)
                 f.close()
                 f = open(args.outFile, "a")
