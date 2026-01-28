@@ -25,9 +25,9 @@ def pv_status(fen, mate, pv):
     return "wrong"
 
 
-def filtered_analysis(engine, board, limit=None, game=None):
+def filtered_analysis(engine, board, limit=None, game=None, root_moves=None):
     info = {}
-    with engine.analysis(board, limit, game=game) as analysis:
+    with engine.analysis(board, limit, game=game, root_moves=root_moves) as analysis:
         for line in analysis:
             if "score" in line and not ("upperbound" in line or "lowerbound" in line):
                 info = line
@@ -162,7 +162,8 @@ class Analyser:
             limit = chess.engine.Limit(depth=depth + 1)
 
         if args.goForward:
-            ff = False
+            ff = ""
+            rootmoves = {}
             if m is None or abs(m) > abs(bm) or (m == bm and len(pv) <= len(oldpv)):
                 m, pv = bm, oldpv
             pvStr = " ".join(pv)
@@ -198,19 +199,26 @@ class Analyser:
 
                 if localm is not None and localm < pvmate:
                     print(
-                        f"Previous move was suboptimal, allowing mate in {localm} rather than in {pvmate}."
+                        f"Previous move {move} was suboptimal, allowing mate in {localm} rather than in {pvmate}."
                     )
                     # step back to the defender's turn and find better defense
                     board.pop()
                     ply -= 1
+                    if ply not in rootmoves:
+                        rootmoves[ply] = list(board.legal_moves)
+                    rootmoves[ply].remove(chess.Move.from_uci(move))
+                    if not rootmoves[ply]:
+                        return bm, [], "incomplete"
                     pvmate = -pvmate
                     limit = copy.copy(self.limit)
                     limit.mate = -pvmate
                     print(
-                        f'Analysing "{board.epd()}" for better defense to {limit}.',
+                        f'Analysing "{board.epd()}" for better defense to {limit}, with rootmoves {rootmoves[ply]}.',
                         flush=True,
                     )
-                    info = filtered_analysis(self.engine, board, limit, game=board)
+                    info = filtered_analysis(
+                        self.engine, board, limit, game=board, root_moves=rootmoves[ply]
+                    )
 
                     if "score" in info and "pv" in info:
                         score = info["score"].pov(board.turn)
@@ -229,11 +237,12 @@ class Analyser:
                                 f"Corrected PV found for ply {ply+1}. Continuing optimality check..."
                             )
                             print(f"New PV:", " ".join(pv))
-                            ff = True
+                            ff = "improved"
                             continue
+                    return m, [], "incomplete"
             return m, pv, ff
 
-        return m, pv, False
+        return m, pv, ""
 
 
 class HelpFormatter(argparse.ArgumentDefaultsHelpFormatter):
@@ -451,7 +460,7 @@ if __name__ == "__main__":
                     print(
                         f"PV has status {status} and length {len(pv)} <= {len(oldpv)}, so no improvement."
                     )
-                    if ff:
+                    if ff == "improved":
                         print(f"Old PV failed forward analysis, so save improved one.")
                     else:
                         pv = None
@@ -461,10 +470,13 @@ if __name__ == "__main__":
                     )
             if pv is not None:
                 print("Save PV to file.")
-                f.write(f"{fen} bm #{bm}; PV: {' '.join(pv)};\n")
+                l = f"{fen} bm #{bm};"
+                if pv:
+                    l += f" PV: {' '.join(pv)};\n"
+                    count += 1
+                f.write(l)
                 f.close()
                 f = open(args.outFile, "a")
-                count += 1
 
     ana.quit()
     print(f"All done. Saved {count} PVs to {args.outFile}.")
