@@ -213,7 +213,7 @@ class Analyser:
                     limit = copy.copy(self.limit)
                     limit.mate = -pvmate
                     print(
-                        f'Analysing "{board.epd()}" for better defense to {limit}, with rootmoves {rootmoves[ply]}.',
+                        f'Analysing "{board.epd()}" for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[ply]]}.',
                         flush=True,
                     )
                     info = filtered_analysis(
