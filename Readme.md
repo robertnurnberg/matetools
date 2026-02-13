@@ -29,6 +29,8 @@ The following scripts are provided:
 * `deducepvs.py`: uses proven PVs, and the associated PVs for all
   the positions along the mating lines, to find possibly missing PVs
 * `diffmates.py`: compares two Chest-like EPD files
+* `dtm2pvs.py`: checks and corrects PVs with the help of 
+  [Lichess Tablebase API](https://lichess.org/api#tag/tablebase)
 * `filterpvs.py`: filters positions by the status of their PVs
 * `matestats.py`: generates a distribution plot for the `bm` values found in a given EPD file
 * `matetb.py`: constructs the PV for a single EPD with the help of a custom tablebase for a reduced game tree; see also the much more efficient C++ version at [matetb](https://github.com/robertnurnberg/matetb)
