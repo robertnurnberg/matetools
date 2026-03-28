@@ -208,10 +208,12 @@ class Analyser:
                         rootmoves[ply] = list(board.legal_moves)
                     rootmoves[ply].remove(chess.Move.from_uci(move))
                     if not rootmoves[ply]:
+                        # TODO: go back up the PV line
+                        print("Exhausted all possible defensive moves, giving up.")
                         return bm, [], "incomplete"
                     pvmate = -pvmate
                     limit = copy.copy(self.limit)
-                    limit.mate = -pvmate
+                    limit.mate = -pvmate - 1
                     print(
                         f'Analysing "{board.epd()}" for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[ply]]}.',
                         flush=True,
@@ -231,7 +233,7 @@ class Analyser:
                         print(
                             f"ply {ply:3d}, score {score}, mate {dm} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
                         )
-                        if dm and abs(dm) <= abs(pvmate):
+                        if dm and dm == pvmate:
                             pv = pv[:ply] + [mv.uci() for mv in info["pv"]]
                             print(
                                 f"Corrected PV found for ply {ply+1}. Continuing optimality check..."
@@ -239,6 +241,11 @@ class Analyser:
                             print(f"New PV:", " ".join(pv))
                             ff = "improved"
                             continue
+                        if dm and abs(dm) < abs(pvmate):
+                            # TODO: go back up the PV line
+                            print(
+                                f"Mate {dm} means suboptimal move happened earlier, giving up."
+                            )
                     return m, [], "incomplete"
             return m, pv, ff
 
@@ -443,7 +450,7 @@ if __name__ == "__main__":
                 continue
 
             if args.goForward:
-                print(f"Forward analysis return with #{m} for bm #{bm}.")
+                print(f"Forward analysis returned with #{m} for bm #{bm}.")
                 if ff:
                     print("The old PV was suboptimal!")
             else:
