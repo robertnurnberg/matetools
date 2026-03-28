@@ -241,7 +241,7 @@ class Analyser:
                             print(f"New PV:", " ".join(pv))
                             ff = "improved"
                             continue
-                        if dm:
+                        if dm and abs(dm) < abs(pvmate):
                             # TODO: go back up the PV line
                             print(
                                 f"Mate {dm} means suboptimal move happened earlier, giving up."
