@@ -36,11 +36,11 @@ def filtered_analysis(engine, board, limit=None, game=None, root_moves=None):
 
 class Analyser:
     def __init__(self, args):
-        self.engine = chess.engine.SimpleEngine.popen_uci(args.engine)
-        if args.hash is not None:
-            self.engine.configure({"Hash": args.hash})
+        self.engine = chess.engine.SimpleEngine.popen_uci(args.engine, timeout=120.0)
         if args.threads is not None:
             self.engine.configure({"Threads": args.threads})
+        if args.hash is not None:
+            self.engine.configure({"Hash": args.hash})
         if args.syzygyPath is not None:
             self.engine.configure({"SyzygyPath": args.syzygyPath})
         self.limit = chess.engine.Limit(
