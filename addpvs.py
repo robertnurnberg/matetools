@@ -46,6 +46,7 @@ def filtered_analysis(engine, board, limit=None, game=None):
 class Analyser:
     def __init__(self, args):
         self.engine = args.engine
+        self.timeout = args.timeout
         self.limit = chess.engine.Limit(
             nodes=args.nodes, depth=args.depth, time=args.time, mate=args.mate
         )
@@ -55,11 +56,11 @@ class Analyser:
 
     def analyze_fens(self, fens):
         result_fens = []
-        engine = chess.engine.SimpleEngine.popen_uci(self.engine)
-        if self.hash is not None:
-            engine.configure({"Hash": self.hash})
+        engine = chess.engine.SimpleEngine.popen_uci(self.engine, timeout=self.timeout)
         if self.threads is not None:
             engine.configure({"Threads": self.threads})
+        if self.hash is not None:
+            engine.configure({"Hash": self.hash})
         if self.syzygyPath is not None:
             engine.configure({"SyzygyPath": self.syzygyPath})
         for fen, bm, pvlength, line in fens:
@@ -88,6 +89,11 @@ if __name__ == "__main__":
         "--engine",
         default="./stockfish",
         help="name of the engine binary",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        help="parameter passed to chess.engine.SimpleEngine",
     )
     parser.add_argument(
         "--nodes",

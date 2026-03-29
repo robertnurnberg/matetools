@@ -6,6 +6,11 @@ if __name__ == "__main__":
         description="Merge possibly better PVs from several .epd files into an existing .epd file. Output is to stdout.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    parser.add_argument(
+        "--preferNew",
+        action="store_true",
+        help="Prefer newer PVs of same length.",
+    )
     parser.add_argument("source", help="The source .epd file.")
     parser.add_argument(
         "references",
@@ -30,7 +35,10 @@ if __name__ == "__main__":
                     bmold is None
                     or abs(bm) < abs(bmold)
                     or bm == bmold
-                    and len(pv) > len(pvold)
+                    and (
+                        len(pv) > len(pvold)
+                        or (args.preferNew and len(pv) == len(pvold))
+                    )
                 ):
                     d[fen] = bm, pv
 
