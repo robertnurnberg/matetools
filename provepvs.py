@@ -36,7 +36,9 @@ def filtered_analysis(engine, board, limit=None, game=None, root_moves=None):
 
 class Analyser:
     def __init__(self, args):
-        self.engine = chess.engine.SimpleEngine.popen_uci(args.engine, timeout=120.0)
+        self.engine = chess.engine.SimpleEngine.popen_uci(
+            args.engine, timeout=args.timeout
+        )
         if args.threads is not None:
             self.engine.configure({"Threads": args.threads})
         if args.hash is not None:
@@ -298,6 +300,11 @@ if __name__ == "__main__":
         "--engine",
         default="./stockfish",
         help="Name of the engine binary",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        help="parameter passed to chess.engine.SimpleEngine",
     )
     parser.add_argument(
         "--nodes",
