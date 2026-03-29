@@ -86,7 +86,9 @@ class MateTB:
 
         self.engine = args.engine
         if self.engine:
-            self.engine = chess.engine.SimpleEngine.popen_uci(self.engine)
+            self.engine = chess.engine.SimpleEngine.popen_uci(
+                self.engine, timeout=args.timeout
+            )
             if args.hash:
                 self.engine.configure({"Hash": args.hash})
             n = None if args.limitNodes is None else int(args.limitNodes)
@@ -967,6 +969,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--engine",
         help="Optional name of the engine binary to analyse positions with the mating side to move to cut off parts of the game tree.",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        help="parameter passed to chess.engine.SimpleEngine",
     )
     parser.add_argument("--hash", type=int, help="hash table size in MB")
     parser.add_argument("--limitNodes", help="engine's nodes limit per position")
