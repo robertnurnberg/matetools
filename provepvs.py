@@ -206,53 +206,86 @@ class Analyser:
                         f"Previous move {pv[ply]} was suboptimal, allowing mate in {localm} rather than in {pvmate}."
                     )
                     pvmate = -pvmate
-                    dfen = board.fen()
-                    if dfen not in rootmoves:
-                        rootmoves[dfen] = list(board.legal_moves)
-                    rootmoves[dfen].remove(chess.Move.from_uci(pv[ply]))
-                    if not rootmoves[dfen]:
-                        # TODO: go back up the PV line
-                        print("Exhausted all possible defensive moves, giving up.")
-                        return bm, [], "incomplete"
-                    limit = copy.copy(self.limit)
-                    limit.mate = -pvmate - 1
-                    print(
-                        f'Analysing "{board.epd()}" for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[dfen]]}.',
-                        flush=True,
-                    )
-                    info = filtered_analysis(
-                        self.engine,
-                        board,
-                        limit,
-                        game=board,
-                        root_moves=rootmoves[dfen],
-                    )
 
-                    if "score" in info and "pv" in info:
-                        score = info["score"].pov(board.turn)
-                        dm = score.mate()
-                        depth = info["depth"] if "depth" in info else None
-                        nodes = info["nodes"] if "nodes" in info else None
-                        localpv = (
-                            [mv.uci() for mv in info["pv"]] if "pv" in info else []
-                        )
-                        print(
-                            f"ply {ply:3d}, score {score}, mate {dm} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
-                        )
-                        if dm and dm == pvmate:
-                            pv = pv[:ply] + [mv.uci() for mv in info["pv"]]
+                    improved_defense = False
+                    while True:
+                        dfen = board.fen()
+                        if dfen not in rootmoves:
+                            rootmoves[dfen] = list(board.legal_moves)
+                        ban_move = chess.Move.from_uci(pv[ply])
+                        if ban_move in rootmoves[dfen]:
+                            rootmoves[dfen].remove(ban_move)
+                        if not rootmoves[dfen]:
                             print(
-                                f"Corrected PV found for ply {ply+1}. Continuing optimality check..."
+                                f"Exhausted all possible defensive moves at ply {ply}, try to step back up the PV line."
                             )
-                            print(f"New PV:", " ".join(pv))
-                            ff = "improved"
+                            if ply < 2:
+                                print(
+                                    "Found shorter mate for first PV move. Needs replacement or bm adjustment."
+                                )
+                                exit(1)
+                            board.pop()
+                            board.pop()
+                            ply -= 2
+                            pvmate -= 1
                             continue
-                        if dm and abs(dm) < abs(pvmate):
-                            # TODO: go back up the PV line
-                            print(
-                                f"Mate {dm} means suboptimal move happened earlier, giving up."
+
+                        limit = copy.copy(self.limit)
+                        limit.mate = -pvmate - 1
+                        print(
+                            f'Analysing "{board.epd()}" at ply {ply} for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[dfen]]}.',
+                            flush=True,
+                        )
+                        info = filtered_analysis(
+                            self.engine,
+                            board,
+                            limit,
+                            game=board,
+                            root_moves=rootmoves[dfen],
+                        )
+
+                        if "score" in info and "pv" in info:
+                            score = info["score"].pov(board.turn)
+                            dm = score.mate()
+                            depth = info["depth"] if "depth" in info else None
+                            nodes = info["nodes"] if "nodes" in info else None
+                            localpv = (
+                                [mv.uci() for mv in info["pv"]] if "pv" in info else []
                             )
-                    return m, [], "incomplete"
+                            print(
+                                f"ply {ply:3d}, score {score}, mate {dm} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
+                            )
+                            if dm and dm == pvmate:
+                                pv = pv[:ply] + [mv.uci() for mv in info["pv"]]
+                                print(
+                                    f"Corrected PV found for ply {ply}. Continuing optimality check..."
+                                )
+                                print(f"New PV:", " ".join(pv))
+                                ff = "improved"
+                                improved_defense = True
+                                break
+
+                            if dm and abs(dm) < abs(pvmate):
+                                print(
+                                    f"Mate {dm} means suboptimal move happened earlier, try to step back up the PV line."
+                                )
+                                if ply < 2:
+                                    print(
+                                        "Found shorter mate for first PV move. Needs replacement or bm adjustment."
+                                    )
+                                    exit(1)
+                                rootmoves[dfen] = []
+                                board.pop()
+                                board.pop()
+                                ply -= 2
+                                pvmate -= 1
+                                continue
+
+                        return m, [], "incomplete"
+
+                    if improved_defense:
+                        continue
+
             return m, pv, ff
 
         return m, pv, ""
