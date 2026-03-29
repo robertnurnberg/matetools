@@ -175,8 +175,7 @@ class Analyser:
             )
             ply, pvmate = 0, bm
             while ply < len(pv):
-                move = pv[ply]
-                board.push(chess.Move.from_uci(move))
+                board.push(chess.Move.from_uci(pv[ply]))
                 ply += 1
                 pvmate = -pvmate + (1 if pvmate > 0 else 0)
 
@@ -200,28 +199,33 @@ class Analyser:
                 )
 
                 if localm is not None and localm < pvmate:
-                    print(
-                        f"Previous move {move} was suboptimal, allowing mate in {localm} rather than in {pvmate}."
-                    )
                     # step back to the defender's turn and find better defense
                     board.pop()
                     ply -= 1
-                    if ply not in rootmoves:
-                        rootmoves[ply] = list(board.legal_moves)
-                    rootmoves[ply].remove(chess.Move.from_uci(move))
-                    if not rootmoves[ply]:
+                    print(
+                        f"Previous move {pv[ply]} was suboptimal, allowing mate in {localm} rather than in {pvmate}."
+                    )
+                    pvmate = -pvmate
+                    dfen = board.fen()
+                    if dfen not in rootmoves:
+                        rootmoves[dfen] = list(board.legal_moves)
+                    rootmoves[dfen].remove(chess.Move.from_uci(pv[ply]))
+                    if not rootmoves[dfen]:
                         # TODO: go back up the PV line
                         print("Exhausted all possible defensive moves, giving up.")
                         return bm, [], "incomplete"
-                    pvmate = -pvmate
                     limit = copy.copy(self.limit)
                     limit.mate = -pvmate - 1
                     print(
-                        f'Analysing "{board.epd()}" for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[ply]]}.',
+                        f'Analysing "{board.epd()}" for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[dfen]]}.',
                         flush=True,
                     )
                     info = filtered_analysis(
-                        self.engine, board, limit, game=board, root_moves=rootmoves[ply]
+                        self.engine,
+                        board,
+                        limit,
+                        game=board,
+                        root_moves=rootmoves[dfen],
                     )
 
                     if "score" in info and "pv" in info:
