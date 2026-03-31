@@ -34,6 +34,22 @@ def filtered_analysis(engine, board, limit=None, game=None, root_moves=None):
     return info
 
 
+def analyse_and_print(engine, board, limit, game=None, root_moves=None, ply=None):
+    info = filtered_analysis(engine, board, limit, game, root_moves)
+    if "score" in info:
+        score = info["score"].pov(board.turn)
+        depth = info["depth"] if "depth" in info else None
+        nodes = info["nodes"] if "nodes" in info else None
+        pv = [m.uci() for m in info["pv"]] if "pv" in info else []
+        bstr = "Final" if ply is None else f"ply {ply:3d},"
+        print(
+            f"{bstr} score {score} (d{depth}, nodes {nodes}) PV: {' '.join(pv)}",
+            flush=True,
+        )
+        return score.mate(), pv
+    return None, None
+
+
 class Analyser:
     def __init__(self, args):
         self.engine = chess.engine.SimpleEngine.popen_uci(
@@ -87,37 +103,26 @@ class Analyser:
                     f'Analysing "{board.epd()}" (after move {board.peek().uci()}) to {limit}.',
                     flush=True,
                 )
-                info = filtered_analysis(self.engine, board, limit, game=board)
-                if "score" in info:
-                    score = info["score"].pov(board.turn)
-                    depth = info["depth"] if "depth" in info else None
-                    nodes = info["nodes"] if "nodes" in info else None
-                    fillpv = [m.uci() for m in info["pv"]] if "pv" in info else []
-                    print(
-                        f"ply {ply:3d}, score {score} (d{depth}, nodes {nodes}) PV: {' '.join(fillpv)}",
-                        flush=True,
-                    )
-                    m = score.mate()
-                    if do_mate_fill and (m is None or abs(m) > abs(pvmate)):
-                        print(f"error for 'go mate {abs(pvmate)}'.", flush=True)
-                    if self.trust:
-                        # we play this safe and only use positive mate scores
-                        if m is not None and m > 0 and m <= pvmate and "pv" in info:
-                            newbm = bm + m - pvmate
-                            newpv = pv[:ply] + [m.uci() for m in info["pv"]]
-                            status = pv_status(fen, newbm, newpv)
-                            print(
-                                f"Found terminal mate {m}, combined PV has status {status}."
-                            )
-                            assert status in [
-                                "ok",
-                                "short",
-                            ], f"Unexpected PV status {status}."
-                            if abs(newbm) < abs(bm):
-                                print(
-                                    "Warning: the shorter mate cannot be trusted (there may be better defenses)."
-                                )
-                            return newbm, newpv, False  # TODO: Align with --goForward
+                m, fillpv = analyse_and_print(
+                    self.engine, board, limit, game=board, ply=ply
+                )
+                if do_mate_fill and (m is None or abs(m) > abs(pvmate)):
+                    print(f"error for 'go mate {abs(pvmate)}'.", flush=True)
+                # we play this safe and only use positive mate scores
+                if self.trust and m is not None and m > 0 and m <= pvmate and fillpv:
+                    newbm = bm + m - pvmate
+                    newpv = pv[:ply] + fillpv
+                    status = pv_status(fen, newbm, newpv)
+                    print(f"Found terminal mate {m}, combined PV has status {status}.")
+                    assert status in [
+                        "ok",
+                        "short",
+                    ], f"Unexpected PV status {status}."
+                    if abs(newbm) < abs(bm):
+                        print(
+                            "Warning: the shorter mate cannot be trusted (there may be better defenses)."
+                        )
+                    return newbm, newpv, False  # TODO: Align with --goForward
 
             board.pop()
             ply -= 1
@@ -131,25 +136,16 @@ class Analyser:
         oldpv = pv
         while True:
             print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
-            info = filtered_analysis(self.engine, board, limit, game=board)
-            m, pv = None, None
-            if "score" in info:
-                score = info["score"].pov(board.turn)
-                m = score.mate()
-                depth = info["depth"] if "depth" in info else None
-                nodes = info["nodes"] if "nodes" in info else None
-                localpv = [m.uci() for m in info["pv"]] if "pv" in info else []
-                print(
-                    f"Final score {score}, mate {m} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
-                )
-                if (
-                    do_mate_fill
-                    and limit == chess.engine.Limit(mate=abs(bm))
-                    and (m is None or abs(m) > abs(bm))
-                ):
-                    print(f"error for 'go mate {abs(bm)}'.", flush=True)
-            if m is not None and abs(m) <= abs(bm) and "pv" in info:
-                pv = [m.uci() for m in info["pv"]]
+            pv = None
+            m, localpv = analyse_and_print(self.engine, board, limit, game=board)
+            if (
+                do_mate_fill
+                and limit == chess.engine.Limit(mate=abs(bm))
+                and (m is None or abs(m) > abs(bm))
+            ):
+                print(f"error for 'go mate {abs(bm)}'.", flush=True)
+            if m is not None and abs(m) <= abs(bm) and localpv:
+                pv = localpv
             if self.longestPV:
                 if pv is None:  # if no mate is found anymore, return best found
                     m, pv = bestm, bestpv
@@ -186,105 +182,84 @@ class Analyser:
                 limit = copy.copy(self.limit)
                 limit.mate = max(1, pvmate - 1)
                 print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
-                info = filtered_analysis(self.engine, board, limit, game=board)
-                if "score" not in info:
-                    continue
-                score = info["score"].pov(board.turn)
-                localm = score.mate()
-                depth = info["depth"] if "depth" in info else None
-                nodes = info["nodes"] if "nodes" in info else None
-                localpv = [mv.uci() for mv in info["pv"]] if "pv" in info else []
-                print(
-                    f"ply {ply:3d}, score {score}, mate {localm} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
+                localm, localpv = analyse_and_print(
+                    self.engine, board, limit, game=board, ply=ply
                 )
+                if localm is None or localm >= pvmate:
+                    continue
 
-                if localm is not None and localm < pvmate:
-                    # step back to the defender's turn and find better defense
-                    board.pop()
-                    ply -= 1
-                    print(
-                        f"Previous move {pv[ply]} was suboptimal, allowing mate in {localm} rather than in {pvmate}."
-                    )
-                    pvmate = -pvmate
+                # step back to the defender's turn and find better defense
+                board.pop()
+                ply -= 1
+                print(
+                    f"Previous move {pv[ply]} was suboptimal, allowing mate in {localm} rather than in {pvmate}."
+                )
+                pvmate = -pvmate
 
-                    improved_defense = False
-                    while True:
-                        dfen = board.fen()
-                        if dfen not in rootmoves:
-                            rootmoves[dfen] = list(board.legal_moves)
-                        ban_move = chess.Move.from_uci(pv[ply])
-                        if ban_move in rootmoves[dfen]:
-                            rootmoves[dfen].remove(ban_move)
-                        if not rootmoves[dfen]:
-                            print(
-                                f"Exhausted all possible defensive moves at ply {ply}, try to step back up the PV line."
-                            )
-                            if ply < 2:
-                                print(
-                                    "Found shorter mate for first PV move. Needs replacement or bm adjustment."
-                                )
-                                exit(1)
-                            board.pop()
-                            board.pop()
-                            ply -= 2
-                            pvmate -= 1
-                            continue
-
-                        limit = copy.copy(self.limit)
-                        limit.mate = max(1, -pvmate - 1)
+                while True:
+                    dfen = board.fen()
+                    if dfen not in rootmoves:
+                        rootmoves[dfen] = list(board.legal_moves)
+                    ban_move = chess.Move.from_uci(pv[ply])
+                    if ban_move in rootmoves[dfen]:
+                        rootmoves[dfen].remove(ban_move)
+                    if not rootmoves[dfen]:
                         print(
-                            f'Analysing "{board.epd()}" at ply {ply} for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[dfen]]}.',
-                            flush=True,
+                            f"Exhausted all possible defensive moves at ply {ply}, try to step back up the PV line."
                         )
-                        info = filtered_analysis(
-                            self.engine,
-                            board,
-                            limit,
-                            game=board,
-                            root_moves=rootmoves[dfen],
-                        )
-
-                        if "score" in info and "pv" in info:
-                            score = info["score"].pov(board.turn)
-                            dm = score.mate()
-                            depth = info["depth"] if "depth" in info else None
-                            nodes = info["nodes"] if "nodes" in info else None
-                            localpv = (
-                                [mv.uci() for mv in info["pv"]] if "pv" in info else []
-                            )
+                        if ply < 2:
                             print(
-                                f"ply {ply:3d}, score {score}, mate {dm} (d{depth}, nodes {nodes}) PV: {' '.join(localpv)}"
+                                "Found shorter mate for first PV move. Needs replacement or bm adjustment."
                             )
-                            if dm and dm == pvmate:
-                                pv = pv[:ply] + [mv.uci() for mv in info["pv"]]
-                                print(
-                                    f"Corrected PV found for ply {ply}. Continuing optimality check..."
-                                )
-                                print(f"New PV:", " ".join(pv))
-                                ff = "improved"
-                                improved_defense = True
-                                break
-
-                            if dm and abs(dm) < abs(pvmate):
-                                print(
-                                    f"Mate {dm} means suboptimal move happened earlier, try to step back up the PV line."
-                                )
-                                if ply < 2:
-                                    print(
-                                        "Found shorter mate for first PV move. Needs replacement or bm adjustment."
-                                    )
-                                    exit(1)
-                                rootmoves[dfen] = []
-                                board.pop()
-                                board.pop()
-                                ply -= 2
-                                pvmate -= 1
-                                continue
-
-                        return m, [], "incomplete"
-
-                    if improved_defense:
+                            exit(1)
+                        board.pop()
+                        board.pop()
+                        ply -= 2
+                        pvmate -= 1
                         continue
+
+                    limit = copy.copy(self.limit)
+                    limit.mate = max(1, -pvmate - 1)
+                    print(
+                        f'Analysing "{board.epd()}" at ply {ply} for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[dfen]]}.',
+                        flush=True,
+                    )
+                    dm, localpv = analyse_and_print(
+                        self.engine,
+                        board,
+                        limit,
+                        game=board,
+                        root_moves=rootmoves[dfen],
+                        ply=ply,
+                    )
+                    if not localpv:
+                        return m, [], "incomplete"
+                    if dm and dm == pvmate:
+                        pv = pv[:ply] + localpv
+                        print(
+                            f"Corrected PV found for ply {ply}. Continuing optimality check..."
+                        )
+                        print(f"New PV:", " ".join(pv))
+                        ff = "improved"
+                        break
+
+                    if dm and abs(dm) < abs(pvmate):
+                        print(
+                            f"Mate {dm} means suboptimal move happened earlier, try to step back up the PV line."
+                        )
+                        if ply < 2:
+                            print(
+                                "Found shorter mate for first PV move. Needs replacement or bm adjustment."
+                            )
+                            exit(1)
+                        rootmoves[dfen] = []
+                        board.pop()
+                        board.pop()
+                        ply -= 2
+                        pvmate -= 1
+                        continue
+
+                    return m, [], "incomplete"
 
             return m, pv, ff
 
