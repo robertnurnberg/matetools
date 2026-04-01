@@ -34,7 +34,7 @@ def filtered_analysis(engine, board, limit=None, game=None, root_moves=None):
     return info
 
 
-def analyse_and_print(engine, board, limit, game=None, root_moves=None, ply=None):
+def analyze_and_print(engine, board, limit, game=None, root_moves=None, ply=None):
     info = filtered_analysis(engine, board, limit, game, root_moves)
     if "score" in info:
         score = info["score"].pov(board.turn)
@@ -103,7 +103,7 @@ class Analyser:
                     f'Analysing "{board.epd()}" (after move {board.peek().uci()}) to {limit}.',
                     flush=True,
                 )
-                m, fillpv = analyse_and_print(
+                m, fillpv = analyze_and_print(
                     self.engine, board, limit, game=board, ply=ply
                 )
                 if do_mate_fill and (m is None or abs(m) > abs(pvmate)):
@@ -137,7 +137,7 @@ class Analyser:
         while True:
             print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
             pv = None
-            m, localpv = analyse_and_print(self.engine, board, limit, game=board)
+            m, localpv = analyze_and_print(self.engine, board, limit, game=board)
             if (
                 do_mate_fill
                 and limit == chess.engine.Limit(mate=abs(bm))
@@ -182,7 +182,7 @@ class Analyser:
                 limit = copy.copy(self.limit)
                 limit.mate = max(1, pvmate - 1)
                 print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
-                localm, localpv = analyse_and_print(
+                localm, localpv = analyze_and_print(
                     self.engine, board, limit, game=board, ply=ply
                 )
                 if localm is None or localm >= pvmate:
@@ -224,7 +224,7 @@ class Analyser:
                         f'Analysing "{board.epd()}" at ply {ply} for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[dfen]]}.',
                         flush=True,
                     )
-                    dm, localpv = analyse_and_print(
+                    dm, localpv = analyze_and_print(
                         self.engine,
                         board,
                         limit,
