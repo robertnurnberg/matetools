@@ -232,7 +232,7 @@ class Analyser:
                         root_moves=rootmoves[dfen],
                         ply=ply,
                     )
-                    if not dm or abs(dm) > abs(pvmate):
+                    if not dm or abs(dm) > abs(pvmate) or not localpv:
                         return m, [], "incomplete"
 
                     if dm == pvmate:
