@@ -232,9 +232,10 @@ class Analyser:
                         root_moves=rootmoves[dfen],
                         ply=ply,
                     )
-                    if not localpv:
+                    if not dm or abs(dm) > abs(pvmate):
                         return m, [], "incomplete"
-                    if dm and dm == pvmate:
+
+                    if dm == pvmate:
                         pv = pv[:ply] + localpv
                         print(
                             f"Corrected PV found for ply {ply}. Continuing optimality check..."
@@ -243,23 +244,21 @@ class Analyser:
                         ff = "improved"
                         break
 
-                    if dm and abs(dm) < abs(pvmate):
+                    # defense for expected mate impossible: trace back
+                    print(
+                        f"Mate {dm} means suboptimal move happened earlier, try to step back up the PV line."
+                    )
+                    if ply < 2:
                         print(
-                            f"Mate {dm} means suboptimal move happened earlier, try to step back up the PV line."
+                            "Found shorter mate for first PV move. Needs replacement or bm adjustment."
                         )
-                        if ply < 2:
-                            print(
-                                "Found shorter mate for first PV move. Needs replacement or bm adjustment."
-                            )
-                            exit(1)
-                        rootmoves[dfen] = []
-                        board.pop()
-                        board.pop()
-                        ply -= 2
-                        pvmate -= 1
-                        continue
-
-                    return m, [], "incomplete"
+                        exit(1)
+                    rootmoves[dfen] = []
+                    board.pop()
+                    board.pop()
+                    ply -= 2
+                    pvmate -= 1
+                    continue
 
             return m, pv, ff
 
