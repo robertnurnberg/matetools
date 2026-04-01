@@ -233,6 +233,9 @@ class Analyser:
                         ply=ply,
                     )
                     if not dm or abs(dm) > abs(pvmate) or not localpv:
+                        print(
+                            f"Unable to find defensive move with #{pvmate}. Giving up."
+                        )
                         return m, [], "incomplete"
 
                     if dm == pvmate:
