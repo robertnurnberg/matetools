@@ -157,7 +157,8 @@ class Analyser:
                     break
             else:
                 break
-            limit = chess.engine.Limit(depth=depth + 1)
+            depth = max(self.depthMax, (limit.depth + 1) if limit.depth else 1)
+            limit = chess.engine.Limit(depth=depth)
 
         if args.goForward:
             ff = ""
