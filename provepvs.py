@@ -160,11 +160,9 @@ class Analyser:
             limit = chess.engine.Limit(depth=(limit.depth or self.depthMin) + 1)
 
         # if we found an improved mate or longer PV, do not perform forward analysis
-        if (
-            not args.goForward
-            or m is None
-            or abs(m) < abs(bm)
-            or (m == bm and pv and len(pv) > len(oldpv))
+        if not args.goForward or (
+            m is not None
+            and (abs(m) < abs(bm) or (m == bm and pv and len(pv) > len(oldpv)))
         ):
             return m, pv, ""
 
@@ -217,7 +215,7 @@ class Analyser:
                         print(
                             "Found shorter mate for first PV move. Needs replacement or bm adjustment."
                         )
-                        exit(1)
+                        return bm, [], "quit"
                     board.pop()
                     board.pop()
                     ply -= 2
@@ -259,7 +257,7 @@ class Analyser:
                     print(
                         "Found shorter mate for first PV move. Needs replacement or bm adjustment."
                     )
-                    exit(1)
+                    return bm, [], "quit"
                 rootmoves[dfen] = []
                 board.pop()
                 board.pop()
@@ -476,7 +474,7 @@ if __name__ == "__main__":
                 print(f"Found mate #{m}!")
                 if args.goForward:
                     print(f"Hence we skipped the forward analysis.")
-            elif ff in ("incomplete", "improved"):
+            elif ff in ("incomplete", "improved", "quit"):
                 print("The old PV was suboptimal!")
 
             status = pv_status(fen, m, pv)
@@ -509,6 +507,9 @@ if __name__ == "__main__":
                 f.write(l)
                 f.close()
                 f = open(args.outFile, "a")
+
+            if ff == "quit":
+                break
 
     ana.quit()
     print(f"All done. Saved {count} PVs to {args.outFile}.")
