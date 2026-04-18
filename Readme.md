@@ -59,7 +59,7 @@ See [plot](images/matedtrack.png?raw=true).
 * `mate-in-2.epd`: A collection of 6332 `bm #2` puzzles derived from `matetrackpv.epd`. The positions have between 3 and 32 pieces.
 * `mates2000.epd`: A smaller test suite with 2000 positions ranging from #1 to #27 used as part of the CI workflow for [Stockfish](https://github.com/official-stockfish/Stockfish). It contains positions with between 4 and 32 pieces, and in 1105 positions the side to move is going to get mated.
 See [plot](images/mates2000.png?raw=true).
-* `KRvK_1000pv.epd`, `KNBvK_1000pv.epd`, `KBBvK_1000pv.epd`: Test suits with 1000 positions each, where white mates a lone black king. See [plot](images/KRvK_1000pv.png?raw=true), [plot](images/KNBvK_1000pv.png?raw=true) and [plot](images/KBBvK_1000pv.png?raw=true).
+* `KRvK_1000pv.epd`, `KNBvK_1000pv.epd`, `KBBvK_1000pv.epd`: Test suites with 1000 positions each, where white mates a lone black king. See [plot](images/KRvK_1000pv.png?raw=true), [plot](images/KNBvK_1000pv.png?raw=true) and [plot](images/KBBvK_1000pv.png?raw=true).
 * `fishmates.epd.gz`: A collection of 1M mates from LTC fishtest games, ranging from #3 to #35. The positions have between 6 and 31 pieces, and in 202213 positions the side to move is going to get mated.
 See [plot](images/fishmates.png?raw=true). 
 Note: Some of the `bm` values at present are only upper bounds for the fastest
