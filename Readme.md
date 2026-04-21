@@ -62,9 +62,6 @@ See [plot](images/mates2000.png?raw=true).
 * `KRvK_1000pv.epd`, `KNBvK_1000pv.epd`, `KBBvK_1000pv.epd`: Test suites with 1000 positions each, where white mates a lone black king. See [plot](images/KRvK_1000pv.png?raw=true), [plot](images/KNBvK_1000pv.png?raw=true) and [plot](images/KBBvK_1000pv.png?raw=true).
 * `fishmates.epd.gz`: A collection of 1M mates from LTC fishtest games, ranging from #3 to #35. The positions have between 6 and 31 pieces, and in 202213 positions the side to move is going to get mated.
 See [plot](images/fishmates.png?raw=true). 
-Note: Some of the `bm` values at present are only upper bounds for the fastest
-possible mate,
-see [WIP](https://github.com/robertnurnberg/matetools/pull/96) for improvements.
 
 ### Automatic creation of new test positions
 
