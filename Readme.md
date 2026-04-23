@@ -56,7 +56,7 @@ See [plot](images/matetrack.png?raw=true).
 * `matedtrackpv.epd`: Derived from `matetrackpv.epd` (using the script `advancepvs.py`) by advancing one ply in all positions with `bm>1` that have a PV. It contains 6536 unique positions, and in 6529 of these the side to move is going to get mated.
 * `matedtrack.epd`: The same as `matedtrackpv.epd`, but with the PV information removed. 
 See [plot](images/matedtrack.png?raw=true).
-* `mate-in-2.epd`: A collection of 6332 `bm #2` puzzles derived from `matetrackpv.epd`. The positions have between 3 and 32 pieces.
+* `mate-in-2.epd`: A collection of 6331 `bm #2` puzzles derived from `matetrackpv.epd`. The positions have between 3 and 32 pieces.
 * `mates2000.epd`: A smaller test suite with 2000 positions ranging from #1 to #27 used as part of the CI workflow for [Stockfish](https://github.com/official-stockfish/Stockfish). It contains positions with between 4 and 32 pieces, and in 1105 positions the side to move is going to get mated.
 See [plot](images/mates2000.png?raw=true).
 * `KRvK_1000pv.epd`, `KNBvK_1000pv.epd`, `KBBvK_1000pv.epd`: Test suites with 1000 positions each, where white mates a lone black king. See [plot](images/KRvK_1000pv.png?raw=true), [plot](images/KNBvK_1000pv.png?raw=true) and [plot](images/KBBvK_1000pv.png?raw=true).
