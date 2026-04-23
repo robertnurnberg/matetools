@@ -208,9 +208,9 @@ class Analyser:
                 if ban_move in rootmoves[dfen]:
                     rootmoves[dfen].remove(ban_move)
 
+                limit = copy.copy(self.limit)
+                limit.mate = max(1, -pvmate - 1)
                 if rootmoves[dfen]:
-                    limit = copy.copy(self.limit)
-                    limit.mate = max(1, -pvmate - 1)
                     print(
                         f'Analysing "{board.epd()}" at ply {ply} for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[dfen]]}.',
                         flush=True,
