@@ -207,52 +207,46 @@ class Analyser:
                 ban_move = chess.Move.from_uci(pv[ply])
                 if ban_move in rootmoves[dfen]:
                     rootmoves[dfen].remove(ban_move)
-                if not rootmoves[dfen]:
+
+                if rootmoves[dfen]:
+                    limit = copy.copy(self.limit)
+                    limit.mate = max(1, -pvmate - 1)
+                    print(
+                        f'Analysing "{board.epd()}" at ply {ply} for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[dfen]]}.',
+                        flush=True,
+                    )
+                    dm, localpv = analyze_and_print(
+                        self.engine,
+                        board,
+                        limit,
+                        game=board,
+                        root_moves=rootmoves[dfen],
+                        ply=ply,
+                    )
+                    if not dm or abs(dm) > abs(pvmate) or not localpv:
+                        print(
+                            f"Unable to find defensive move with #{pvmate}. Giving up."
+                        )
+                        return bm, [], "incomplete"
+
+                    if dm == pvmate:
+                        pv = pv[:ply] + localpv
+                        print(
+                            f"Corrected PV found for ply {ply}. Continuing optimality check..."
+                        )
+                        print(f"New PV:", " ".join(pv))
+                        ff = "improved"
+                        break
+
+                    # defense for expected mate impossible: trace back
+                    print(
+                        f"Mate {dm} means suboptimal move happened earlier, try to step back up the PV line."
+                    )
+                else:
                     print(
                         f"Exhausted all possible defensive moves at ply {ply}, try to step back up the PV line."
                     )
-                    if ply < 2:
-                        print(
-                            "Found shorter mate for first PV move. Needs replacement or bm adjustment."
-                        )
-                        return bm, [], "quit"
-                    board.pop()
-                    board.pop()
-                    ply -= 2
-                    pvmate -= 1
-                    continue
 
-                limit = copy.copy(self.limit)
-                limit.mate = max(1, -pvmate - 1)
-                print(
-                    f'Analysing "{board.epd()}" at ply {ply} for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[dfen]]}.',
-                    flush=True,
-                )
-                dm, localpv = analyze_and_print(
-                    self.engine,
-                    board,
-                    limit,
-                    game=board,
-                    root_moves=rootmoves[dfen],
-                    ply=ply,
-                )
-                if not dm or abs(dm) > abs(pvmate) or not localpv:
-                    print(f"Unable to find defensive move with #{pvmate}. Giving up.")
-                    return bm, [], "incomplete"
-
-                if dm == pvmate:
-                    pv = pv[:ply] + localpv
-                    print(
-                        f"Corrected PV found for ply {ply}. Continuing optimality check..."
-                    )
-                    print(f"New PV:", " ".join(pv))
-                    ff = "improved"
-                    break
-
-                # defense for expected mate impossible: trace back
-                print(
-                    f"Mate {dm} means suboptimal move happened earlier, try to step back up the PV line."
-                )
                 if ply >= 2:
                     rootmoves[dfen] = []
                     board.pop()
