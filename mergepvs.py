@@ -45,9 +45,11 @@ if __name__ == "__main__":
     with open(args.source) as f:
         for line in f:
             m = p.match(line)
-            fen, bm = m.group(1), int(m.group(2))
-            bm, pv = d.get(fen, (0, None))
+            fen, bmold = m.group(1), int(m.group(2))
+            bm, pv = d.get(fen, (None, None))
             if pv is not None and pv:
                 print(f"{fen} bm #{bm}; PV: {' '.join(pv)};")
+            elif bm is not None and abs(bm) < abs(bmold):
+                print(f"{fen} bm #{bm};")
             else:
                 print(line[:-1])
