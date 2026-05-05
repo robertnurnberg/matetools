@@ -71,11 +71,12 @@ for fen, pv in fens:
     print(fen, end="", flush=True)
     j = get_lichess_json(fen)
     dtm = j.get("dtm")
+    msg = ""
     if dtm:
         pv.reverse()
         board = chess.Board(fen)
         dtm = (dtm + 1) // 2 if dtm % 2 else dtm // 2
-        print(f" bm #{dtm}; PV:", end="", flush=True)
+        msg += f" bm #{dtm}; PV:"
         while j.get("dtm") and (moves := j.get("moves")):
             bestuci = moves[0]["uci"]
             if pv:
@@ -86,11 +87,13 @@ for fen, pv in fens:
                             bestuci = uci
                         else:
                             break
-            print(f" {bestuci}", end="", flush=True)
+            msg += f" {bestuci}"
             board.push(chess.Move.from_uci(bestuci))
             if board.is_checkmate():
+                msg += ";"
                 break
-            j = get_lichess_json(board.epd())
-        print(";")
-    else:
-        print("")
+            if board.can_claim_fifty_moves() or board.can_claim_threefold_repetition():
+                msg = ""
+                break
+            j = get_lichess_json(board.fen())  # move counters do matter
+    print(msg)
