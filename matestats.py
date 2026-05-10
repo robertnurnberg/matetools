@@ -86,7 +86,7 @@ class data:
         fig.suptitle(
             f"Distribution plot for the {self.bmplus+self.bmminus} bm's in {self.filename}.",
         )
-        if max(self.plies.keys()) > cutOff:
+        if max(self.plies.keys()) > 2 * cutOff:
             ax.set_title(
                 f"Values |bm| > {cutOff} are included in the {cutOff} buckets.",
                 fontsize=6,
