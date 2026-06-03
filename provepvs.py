@@ -209,7 +209,7 @@ class Analyser:
                     rootmoves[dfen].remove(ban_move)
 
                 if args.backstepMateLimit:
-                    limit = chess.engine.Limit(mate=max(1, -pvmate))
+                    limit = chess.engine.Limit(mate=-pvmate)
                 else:
                     limit = copy.copy(self.limit)
                     limit.mate = max(1, -pvmate - 1)
