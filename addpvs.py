@@ -134,6 +134,12 @@ if __name__ == "__main__":
         default="won",
         help="type of positions to find PVs for (WARNING: only use 'won' for unreliable engines!)",
     )
+    parser.add_argument(
+        "--TBlimit",
+        type=int,
+        default=1,
+        help="positions with this many pieces, or fewer, will be ignored",
+    )
     args = parser.parse_args()
     if args.nodes is None and args.depth is None and args.time is None:
         args.nodes = 10**6
@@ -157,16 +163,20 @@ if __name__ == "__main__":
                 _, _, pv = line.partition("; PV: ")
                 pv, _, _ = pv[:-1].partition(";")  # remove '\n'
                 pv = pv.split()
+                pc = sum(1 for char in fen.split()[0] if char.lower() in "pnbrqk")
                 if (
-                    args.mateType == "all"
-                    or args.mateType == "won"
-                    and bm is not None
-                    and bm > 0
-                    or args.mateType == "lost"
-                    and bm is not None
-                    and bm < 0
-                    or args.mateType == "unknown"
-                    and bm is None
+                    pc > args.TBlimit
+                    and (
+                        args.mateType == "all"
+                        or args.mateType == "won"
+                        and bm is not None
+                        and bm > 0
+                        or args.mateType == "lost"
+                        and bm is not None
+                        and bm < 0
+                        or args.mateType == "unknown"
+                        and bm is None
+                    )
                 ) and (bm is None or pv_status(fen, bm, pv) != "ok"):
                     ana_fens.append((fen, bm, len(pv), line))
                 fens.append((fen, line))
