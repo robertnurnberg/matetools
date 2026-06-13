@@ -167,7 +167,7 @@ if __name__ == "__main__":
                     and bm < 0
                     or args.mateType == "unknown"
                     and bm is None
-                ) and pv_status(fen, bm, pv) != "ok":
+                ) and (bm is None or pv_status(fen, bm, pv) != "ok"):
                     ana_fens.append((fen, bm, len(pv), line))
                 fens.append((fen, line))
 
