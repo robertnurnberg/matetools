@@ -147,7 +147,7 @@ if __name__ == "__main__":
         args.nodes = eval(args.nodes)
 
     ana = Analyser(args)
-    p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+    p = re.compile(r"([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #([0-9\-]*))?")
 
     print("Loading FENs ...")
 
@@ -155,11 +155,11 @@ if __name__ == "__main__":
     with open(args.epdFile) as f:
         for line in f:
             m = p.match(line)
-            if not m and "bm #" in line:
+            if not m:
                 print("---------------------> IGNORING : ", line)
             else:
-                fen = m.group(1) if m else " ".join(line.split()[:4])
-                bm = int(m.group(2)) if m else None
+                fen = m.group(1)
+                bm = int(m.group(3)) if m.group(2) is not None else None
                 _, _, pv = line.partition("; PV: ")
                 pv, _, _ = pv[:-1].partition(";")  # remove '\n'
                 pv = pv.split()
