@@ -24,6 +24,8 @@ if __name__ == "__main__":
     for filename in [args.source] + args.references:  # important to also read in source
         with open(filename) as f:
             for line in f:
+                if "bm #" not in line:
+                    continue
                 m = p.match(line)
                 assert m, f"error for line '{line[:-1]}' in file {filename}"
                 fen, bm = m.group(1), int(m.group(2))
@@ -45,11 +47,12 @@ if __name__ == "__main__":
     with open(args.source) as f:
         for line in f:
             m = p.match(line)
-            fen, bmold = m.group(1), int(m.group(2))
+            fen = m.group(1) if m else " ".join(line.split()[:4])
+            bmold = int(m.group(2)) if m else None
             bm, pv = d.get(fen, (None, None))
-            if pv is not None and pv:
+            if pv:
                 print(f"{fen} bm #{bm}; PV: {' '.join(pv)};")
-            elif bm is not None and abs(bm) < abs(bmold):
+            elif bm is not None and (bmold is None or abs(bm) < abs(bmold)):
                 print(f"{fen} bm #{bm};")
             else:
                 print(line[:-1])
