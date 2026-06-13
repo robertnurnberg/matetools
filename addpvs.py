@@ -68,7 +68,7 @@ class Analyser:
             board = chess.Board(fen)
             info = filtered_analysis(engine, board, self.limit, game=board)
             m = info["score"].pov(board.turn).mate() if "score" in info else None
-            if m is not None and abs(m) <= abs(bm) and "pv" in info:
+            if m is not None and (bm is None or abs(m) <= abs(bm)) and "pv" in info:
                 pv = [m.uci() for m in info["pv"]]
                 if m == bm and len(pv) <= pvlength:  # no improvement
                     pv = None
@@ -130,9 +130,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--mateType",
-        choices=["all", "won", "lost"],
+        choices=["all", "won", "lost", "unknown"],
         default="won",
-        help="type of positions to find PVs for (WARNING: use all or lost only for reliable engines!)",
+        help="type of positions to find PVs for (WARNING: only use 'won' for unreliable engines!)",
     )
     args = parser.parse_args()
     if args.nodes is None and args.depth is None and args.time is None:
@@ -149,19 +149,24 @@ if __name__ == "__main__":
     with open(args.epdFile) as f:
         for line in f:
             m = p.match(line)
-            if not m:
+            if not m and "bm #" in line:
                 print("---------------------> IGNORING : ", line)
             else:
-                fen, bm = m.group(1), int(m.group(2))
+                fen = m.group(1) if m else " ".join(line.split()[:4])
+                bm = int(m.group(2)) if m else None
                 _, _, pv = line.partition("; PV: ")
                 pv, _, _ = pv[:-1].partition(";")  # remove '\n'
                 pv = pv.split()
                 if (
                     args.mateType == "all"
                     or args.mateType == "won"
+                    and bm is not None
                     and bm > 0
                     or args.mateType == "lost"
+                    and bm is not None
                     and bm < 0
+                    or args.mateType == "unknown"
+                    and bm is None
                 ) and pv_status(fen, bm, pv) != "ok":
                     ana_fens.append((fen, bm, len(pv), line))
                 fens.append((fen, line))
@@ -215,7 +220,7 @@ if __name__ == "__main__":
     d = {}
     count_found = better = 0
     for fen, bm, m, pv in res:
-        if m is not None and abs(m) < abs(bm):
+        if m is not None and (bm is None or abs(m) < abs(bm)):
             print(f"Found better mate #{m} for FEN {fen} bm #{bm}")
             bm = m
             better += 1
@@ -230,7 +235,7 @@ if __name__ == "__main__":
 
     with open(args.outFile, "w") as f:
         for fen, line in fens:
-            bm, pv = d.get(fen, (0, None))
+            bm, pv = d.get(fen, (None, None))
             if pv is not None:
                 f.write(f"{fen} bm #{bm}; PV: {' '.join(pv)};\n")
             else:
