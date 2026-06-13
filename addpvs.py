@@ -247,7 +247,7 @@ if __name__ == "__main__":
         for fen, line in fens:
             bm, pv = d.get(fen, (None, None))
             if bm is not None:
-                msg = f"{fen} bm #{bm};" + " PV: {' '.join(pv)};" * bool(pv)
+                msg = f"{fen} bm #{bm};" + f" PV: {' '.join(pv)};" * bool(pv)
                 f.write(f"{msg}\n")
             else:
                 f.write(line)
