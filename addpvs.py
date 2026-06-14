@@ -151,40 +151,44 @@ if __name__ == "__main__":
 
     print("Loading FENs ...")
 
-    fens, ana_fens = [], []
+    fens, ana_fens, fencount = [], [], 0
     with open(args.epdFile) as f:
         for line in f:
+            if line.startswith("#"):  # preserve comments
+                fens.append((None, line))
+                continue
             m = p.match(line)
             if not m:
                 print("---------------------> IGNORING : ", line)
-            else:
-                fen = m.group(1)
-                bm = int(m.group(3)) if m.group(2) is not None else None
-                _, _, pv = line.partition("; PV: ")
-                pv, _, _ = pv[:-1].partition(";")  # remove '\n'
-                pv = pv.split()
-                pc = sum(1 for char in fen.split()[0] if char.lower() in "pnbrqk")
-                if (
-                    pc > args.TBlimit
-                    and (
-                        args.mateType == "all"
-                        or args.mateType == "won"
-                        and bm is not None
-                        and bm > 0
-                        or args.mateType == "lost"
-                        and bm is not None
-                        and bm < 0
-                        or args.mateType == "unknown"
-                        and bm is None
-                    )
-                ) and (bm is None or pv_status(fen, bm, pv) != "ok"):
-                    ana_fens.append((fen, bm, len(pv), line))
-                fens.append((fen, line))
+                continue
+            fen = m.group(1)
+            bm = int(m.group(3)) if m.group(2) is not None else None
+            _, _, pv = line.partition("; PV: ")
+            pv, _, _ = pv[:-1].partition(";")  # remove '\n'
+            pv = pv.split()
+            pc = sum(1 for char in fen.split()[0] if char.lower() in "pnbrqk")
+            if (
+                pc > args.TBlimit
+                and (
+                    args.mateType == "all"
+                    or args.mateType == "won"
+                    and bm is not None
+                    and bm > 0
+                    or args.mateType == "lost"
+                    and bm is not None
+                    and bm < 0
+                    or args.mateType == "unknown"
+                    and bm is None
+                )
+            ) and (bm is None or pv_status(fen, bm, pv) != "ok"):
+                ana_fens.append((fen, bm, len(pv), line))
+            fens.append((fen, line))
+            fencount += 1
 
     random.seed(42)
     random.shuffle(ana_fens)  # try to balance the analysis time across chunks
 
-    print(f"{len(fens)} FENs loaded, {len(ana_fens)} need analysis ...")
+    print(f"{fencount} FENs loaded, {len(ana_fens)} need analysis ...")
 
     numfen = len(ana_fens)
     workers = args.concurrency // (args.threads if args.threads else 1)
@@ -245,7 +249,7 @@ if __name__ == "__main__":
 
     with open(args.outFile, "w") as f:
         for fen, line in fens:
-            bm, pv = d.get(fen, (None, None))
+            bm, pv = (None, None) if fen is None else d.get(fen, (None, None))
             if bm is not None:
                 msg = f"{fen} bm #{bm};" + (f" PV: {' '.join(pv)};" if pv else "")
                 f.write(f"{msg}\n")
