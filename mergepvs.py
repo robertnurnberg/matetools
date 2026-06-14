@@ -18,7 +18,7 @@ if __name__ == "__main__":
         help="List of .epd files with possibly more or longer PVs.",
     )
     args = parser.parse_args()
-    p = re.compile(r"([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
+    p = re.compile(r"^([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
 
     d = {}  # the dict will hold the shortest mates, with longest PVs
     for filename in [args.source] + args.references:  # important to also read in source
