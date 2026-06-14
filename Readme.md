@@ -26,6 +26,7 @@ The following scripts are provided:
   script uses concurrency, results are available once _all_ positions have been
   processed)
 * `advancepvs.py`: advances a number of plies in the given PVs to create new puzzles
+* `bm2multipv.py`: creates a skeleton `_multipv.epd` file with all the positions 1 ply from the given puzzles
 * `deducepvs.py`: uses proven PVs, and the associated PVs for all
   the positions along the mating lines, to find possibly missing PVs
 * `diffmates.py`: compares two Chest-like EPD files
