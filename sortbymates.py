@@ -13,14 +13,19 @@ if __name__ == "__main__":
         help="Use stable sort, default is sort same mates by FEN.",
     )
     args = parser.parse_args()
-    p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+    p = re.compile(r"^([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
 
     fens = []
     with open(args.source) as f:
         for line in f:
+            if line.startswith("#"):
+                continue
             m = p.match(line)
             assert m, f"error for line '{line[:-1]}' in file {args.source}"
-            fen, bm = m.group(1), int(m.group(2))
+            fen = m.group(1)
+            bm = int(m.group(3)) if m.group(2) is not None else None
+            if bm is None:
+                continue
             fens.append((fen, bm, line))
 
     if args.stable:
