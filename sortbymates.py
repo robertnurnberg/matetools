@@ -4,7 +4,7 @@ import argparse, re
 def sort_key(t, stable, multiPV):
     _, bm, _ = t
     if multiPV:
-        key = (1, 0) if bm is None else (0, bm) if bm > 0 else (2, bm)
+        key = (1, 0) if bm is None else (2, -bm) if bm > 0 else (0, -bm)
         return key if stable else (*key, t[0] or "")
     key = float("inf") if bm is None else abs(bm) + (0.5 if bm < 0 else 0)
     return key if stable else (key, t[0] or "")
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--multiPV",
         action="store_true",
-        help="Sort by quality: winning mates (shortest first), unknown, losing mates (longest first).",
+        help="Sort by quality of move leading to FEN: losing mates (shortest first), unknown, winning mates (longest first).",
     )
     args = parser.parse_args()
     p = re.compile(r"^([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
