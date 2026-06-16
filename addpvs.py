@@ -132,7 +132,7 @@ if __name__ == "__main__":
         "--mateType",
         choices=["all", "won", "lost", "unknown"],
         default="won",
-        help="type of positions to find PVs for (WARNING: only use 'won' for unreliable engines!)",
+        help="type of positions to find PVs for (WARNING: for unreliable engines use 'won'!)",
     )
     parser.add_argument(
         "--TBlimit",
