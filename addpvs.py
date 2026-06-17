@@ -215,7 +215,7 @@ if __name__ == "__main__":
         + " ".join([f"--{k} {v}" for k, v in limits if v is not None])
     )
 
-    print(f"\nMate search started for {msg} ...")
+    print(f"\nMate search started for {msg} ...", flush=True)
 
     res = []
     futures = []
