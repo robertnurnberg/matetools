@@ -752,6 +752,7 @@ def fill_exclude_options(args):
     elif epd in [
         "7K/8/8/8/4n3/pp1N3p/rp2N1br/bR3n1k w - -",  # bm #3
         "7K/8/8/7p/p3n3/1p1N3p/rp2N1br/bR3n1k w - -",  # bm #31
+        "8/3p2K1/4p3/1p5p/p3n3/1p1N3p/rp2N1br/bR3n1k b - -",  # bm #-95
         "7K/3p4/4p3/1p5p/p3n3/1p1N3p/rp2N1br/bR3n1k w - -",  # bm #96
     ]:
         args.excludeFrom = "d3 e2"
@@ -776,6 +777,7 @@ def fill_exclude_options(args):
         "n1K5/bNp5/1pP5/1k4p1/1N2pnp1/PP2p1p1/4rpP1/5B2 w - -",  # bm #16
         "n1K5/bNp1p3/1pP5/1k4p1/1N3np1/PP2p1p1/4rpP1/5B2 w - -",  # bm #35
         "n1K5/bNp1p1p1/1pP5/1k6/1N3np1/PP2p1p1/4rpP1/5B2 w - -",  # bm #57
+        "n7/bNpKp1p1/1pP3p1/1k2p3/1N3n2/PP4p1/4rpP1/5B2 b - -",  # bm #-100
         "n1K5/bNp1p1p1/1pP3p1/1k2p3/1N3n2/PP4p1/4rpP1/5B2 w - -",  # bm #101
     ]:
         args.excludeFrom = "a3 b3 b4 b7 c6 g2"
@@ -795,6 +797,7 @@ def fill_exclude_options(args):
     elif epd in [
         "8/8/8/3p2p1/p2np1K1/p3N1pp/rb1N2pr/k1n3Rb w - -",  # bm #4
         "8/8/8/3p2p1/p2np1Kp/p3N1p1/rb1N2pr/k1n3Rb w - -",  # bm #35
+        "8/4p3/3p4/p5pK/3n3p/p3N1p1/rb1N2pr/k1n3Rb b - -",  # bm #-101
         "8/4p3/3p4/p5p1/3n2Kp/p3N1p1/rb1N2pr/k1n3Rb w - -",  # bm #102
     ]:
         args.excludeFrom = "d2 e3 g1"
@@ -851,9 +854,11 @@ def fill_exclude_options(args):
     elif epd in [
         "r1b5/1pKp4/pP1P4/P6B/3pn3/1P1k4/1P6/5N1N w - -",  # bm #4
         "r1b5/1pKp4/pP1P4/P6B/3pn2p/1P1k4/1P6/5N1N w - -",  # bm #26
+        "r1b5/1pKp4/pP1P1p1p/P4p2/3pn2p/1P1k4/1P6/3B1N1N b - -",  # bm #-120
         "r1b5/1pKp4/pP1P1p1p/P4p1B/3pn2p/1P1k4/1P6/5N1N w - -",  # bm #121
     ]:
-        args.openingMoves = "h5d1"
+        if " w " in epd:
+            args.openingMoves = "h5d1"
         args.excludeFrom = "d1 f1 h1 b2 b3 a5 b6 d6"
         args.excludeTo = "c8"
         args.excludeAllowingFrom = "d3 d4 a6 b7 c8 d7"
@@ -865,7 +870,10 @@ def fill_exclude_options(args):
         args.analyseTo = "d1 f1 h1 b2 b3 a5 b6 d6"
         if not (args.limitNodes or args.limitDepth or args.limitTime):
             args.limitDepth = "10"
-    elif epd == "8/1p1p4/3p2p1/5pP1/1p3P1k/1P1p1P1p/1P1P1P1K/7B w - -":  # bm #121
+    elif epd in [
+        "8/1p1p4/3p2p1/5pP1/1p3P1k/1P1p1P1p/1P1P1P2/6KB b - -",  # bm #-120
+        "8/1p1p4/3p2p1/5pP1/1p3P1k/1P1p1P1p/1P1P1P1K/7B w - -",  # bm #121
+    ]:
         args.excludeCaptures = True
         args.excludeFrom = "h1"
         if args.engine is None:
@@ -880,6 +888,7 @@ def fill_exclude_options(args):
         "n7/b1p1K3/1pP5/1P6/7p/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #6
         "n7/b1p1K3/1pP5/1P6/6pp/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #9
         "n7/b1p1K3/1pP5/1P4p1/6pp/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #92
+        "n7/b1p5/1pP2K1p/1P4p1/6p1/1p4Pn/1P2N1br/3NRn1k b - -",  # bm #-125
         "n7/b1p1K3/1pP4p/1P4p1/6p1/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #126
     ]:
         args.excludeFrom = "b2 d1 e1 b5 c6"
