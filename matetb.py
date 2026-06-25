@@ -37,6 +37,7 @@ class MateTB:
         self.depth = args.depth
         playing_side = chess.BLACK if parts[1] == "b" else chess.WHITE
         self.mating_side = not playing_side if " bm #-" in args.epd else playing_side
+        self.mating_side_to_move = playing_side == self.mating_side
         print(f"Restrict moves for {'WHITE' if self.mating_side else 'BLACK'} side.")
 
         self.excludeSANs = [] if args.excludeSANs is None else args.excludeSANs.split()
@@ -400,9 +401,9 @@ class MateTB:
         for move in pv:
             board.push(chess.Move.from_uci(move))
         score = self.probe_tb(board.epd())
-        assert score and score > 0, f'Unexpected score {score} for "{board.epd()}".'
+        assert score, f'Unexpected score {score} for "{board.epd()}".'
         newpv, it = [], 0
-        while len(newpv) != len(pv) + VALUE_MATE - score:
+        while len(newpv) != len(pv) + VALUE_MATE - abs(score):
             limit = chess.engine.Limit(depth=it) if it else self.limit
             if self.verbose >= 4:
                 print(f'Analysing "{board.epd()}" to {limit}.')
@@ -413,7 +414,8 @@ class MateTB:
                     if self.verbose >= 3:
                         print(f'Found mate {m} analysing "{board.epd()}".')
                     s = mate2score(m)
-                    if s > score:
+                    assert s * score > 0, "Found mate with wrong sign"
+                    if abs(s) > abs(score):
                         print("Found shorter mate at end of PV, cannot complete PV.")
                         return ""
                     if s == score and "pv" in info:
@@ -453,7 +455,7 @@ class MateTB:
             return
         print("\nMultiPV:")
         for count, (score, pv) in enumerate(sp):
-            if score is None:
+            if score is None or (score < 0 and self.mating_side_to_move):
                 print(f"multipv {count+1} score None")
                 continue
             score_str = f"cp {score}"
@@ -461,17 +463,25 @@ class MateTB:
             if score:
                 score_str += f" mate {score2mate(score)}"
                 if self.engine and pvstr[-14:] == " ; PV is short":
-                    pv = self.lengthen_pv(pvstr[:-14])
-                    pvstr = pv if pv else pvstr[:-14]
+                    lpv = self.lengthen_pv(pvstr[:-14])
+                    pvstr = lpv if lpv else pvstr[:-14]
             elif pv[-1][0] == ";":
                 pvstr = " ".join(pv[:-1])
             print(f"multipv {count+1} score {score_str} pv {pvstr}")
             if self.verbose >= 2:
                 print(
-                    f"https://chessdb.cn/queryc_en/?{self.root_pos} moves {pvstr}\n".replace(
+                    f"https://chessdb.cn/queryc_en/?{self.root_pos} moves {pvstr}".replace(
                         " ", "_"
                     )
                 )
+                if score:
+                    child_pvstr = " ".join(pvstr.split()[1:])
+                    board.push(chess.Move.from_uci(pv[0]))
+                    print(
+                        f"Child FEN: {board.epd()} bm #{score2mate(-score + (1 if score < 0 else -1))}; PV: {child_pvstr};"
+                    )
+                    board.pop()
+                print()
 
     def quit(self):
         if self.engine:
@@ -693,6 +703,7 @@ def fill_exclude_options(args):
     elif epd in [
         "8/8/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #7
         "8/7p/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #27
+        "8/5ppp/5p2/K7/N7/1B1N4/2rpn1pp/2bk1brq b - -",  # bm #-86
         "8/5ppp/5p2/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #87
     ]:
         args.excludeSANs = "Nb6 Nb5 Nc4"
@@ -739,6 +750,7 @@ def fill_exclude_options(args):
     elif epd in [
         "7K/8/8/8/4n3/pp1N3p/rp2N1br/bR3n1k w - -",  # bm #3
         "7K/8/8/7p/p3n3/1p1N3p/rp2N1br/bR3n1k w - -",  # bm #31
+        "8/3p2K1/4p3/1p5p/p3n3/1p1N3p/rp2N1br/bR3n1k b - -",  # bm #-95
         "7K/3p4/4p3/1p5p/p3n3/1p1N3p/rp2N1br/bR3n1k w - -",  # bm #96
     ]:
         args.excludeFrom = "d3 e2"
@@ -763,6 +775,7 @@ def fill_exclude_options(args):
         "n1K5/bNp5/1pP5/1k4p1/1N2pnp1/PP2p1p1/4rpP1/5B2 w - -",  # bm #16
         "n1K5/bNp1p3/1pP5/1k4p1/1N3np1/PP2p1p1/4rpP1/5B2 w - -",  # bm #35
         "n1K5/bNp1p1p1/1pP5/1k6/1N3np1/PP2p1p1/4rpP1/5B2 w - -",  # bm #57
+        "n7/bNpKp1p1/1pP3p1/1k2p3/1N3n2/PP4p1/4rpP1/5B2 b - -",  # bm #-100
         "n1K5/bNp1p1p1/1pP3p1/1k2p3/1N3n2/PP4p1/4rpP1/5B2 w - -",  # bm #101
     ]:
         args.excludeFrom = "a3 b3 b4 b7 c6 g2"
@@ -782,6 +795,7 @@ def fill_exclude_options(args):
     elif epd in [
         "8/8/8/3p2p1/p2np1K1/p3N1pp/rb1N2pr/k1n3Rb w - -",  # bm #4
         "8/8/8/3p2p1/p2np1Kp/p3N1p1/rb1N2pr/k1n3Rb w - -",  # bm #35
+        "8/4p3/3p4/p5pK/3n3p/p3N1p1/rb1N2pr/k1n3Rb b - -",  # bm #-101
         "8/4p3/3p4/p5p1/3n2Kp/p3N1p1/rb1N2pr/k1n3Rb w - -",  # bm #102
     ]:
         args.excludeFrom = "d2 e3 g1"
@@ -838,9 +852,11 @@ def fill_exclude_options(args):
     elif epd in [
         "r1b5/1pKp4/pP1P4/P6B/3pn3/1P1k4/1P6/5N1N w - -",  # bm #4
         "r1b5/1pKp4/pP1P4/P6B/3pn2p/1P1k4/1P6/5N1N w - -",  # bm #26
+        "r1b5/1pKp4/pP1P1p1p/P4p2/3pn2p/1P1k4/1P6/3B1N1N b - -",  # bm #-120
         "r1b5/1pKp4/pP1P1p1p/P4p1B/3pn2p/1P1k4/1P6/5N1N w - -",  # bm #121
     ]:
-        args.openingMoves = "h5d1"
+        if " w " in epd:
+            args.openingMoves = "h5d1"
         args.excludeFrom = "d1 f1 h1 b2 b3 a5 b6 d6"
         args.excludeTo = "c8"
         args.excludeAllowingFrom = "d3 d4 a6 b7 c8 d7"
@@ -852,7 +868,10 @@ def fill_exclude_options(args):
         args.analyseTo = "d1 f1 h1 b2 b3 a5 b6 d6"
         if not (args.limitNodes or args.limitDepth or args.limitTime):
             args.limitDepth = "10"
-    elif epd == "8/1p1p4/3p2p1/5pP1/1p3P1k/1P1p1P1p/1P1P1P1K/7B w - -":  # bm #121
+    elif epd in [
+        "8/1p1p4/3p2p1/5pP1/1p3P1k/1P1p1P1p/1P1P1P2/6KB b - -",  # bm #-120
+        "8/1p1p4/3p2p1/5pP1/1p3P1k/1P1p1P1p/1P1P1P1K/7B w - -",  # bm #121
+    ]:
         args.excludeCaptures = True
         args.excludeFrom = "h1"
         if args.engine is None:
@@ -867,6 +886,7 @@ def fill_exclude_options(args):
         "n7/b1p1K3/1pP5/1P6/7p/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #6
         "n7/b1p1K3/1pP5/1P6/6pp/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #9
         "n7/b1p1K3/1pP5/1P4p1/6pp/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #92
+        "n7/b1p5/1pP2K1p/1P4p1/6p1/1p4Pn/1P2N1br/3NRn1k b - -",  # bm #-125
         "n7/b1p1K3/1pP4p/1P4p1/6p1/1p4Pn/1P2N1br/3NRn1k w - -",  # bm #126
     ]:
         args.excludeFrom = "b2 d1 e1 b5 c6"
