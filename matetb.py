@@ -462,8 +462,8 @@ class MateTB:
             if score:
                 score_str += f" mate {score2mate(score)}"
                 if self.engine and pvstr[-14:] == " ; PV is short":
-                    pv = self.lengthen_pv(pvstr[:-14])
-                    pvstr = pv if pv else pvstr[:-14]
+                    lpv = self.lengthen_pv(pvstr[:-14])
+                    pvstr = lpv if lpv else pvstr[:-14]
             elif pv[-1][0] == ";":
                 pvstr = " ".join(pv[:-1])
             print(f"multipv {count+1} score {score_str} pv {pvstr}")
@@ -474,10 +474,13 @@ class MateTB:
                     )
                 )
                 if score:
-                    child_pvstr = " ".join(pv[1:])
+                    pvstr = " ".join(pv[1:])
+                    if self.engine and pvstr[-14:] == " ; PV is short":
+                        lpv = self.lengthen_pv(pvstr[:-14])
+                        pvstr = lpv if lpv else pvstr[:-14]
                     board.push(chess.Move.from_uci(pv[0]))
                     print(
-                        f"Child FEN: {board.epd()} bm #{score2mate(-score + (1 if score < 0 else -1))}; PV: {child_pvstr};"
+                        f"Child FEN: {board.epd()} bm #{score2mate(-score + (1 if score < 0 else -1))}; PV: {pvstr};"
                     )
                     board.pop()
                 print()
@@ -702,6 +705,7 @@ def fill_exclude_options(args):
     elif epd in [
         "8/8/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #7
         "8/7p/8/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #27
+        "8/5ppp/5p2/K7/N7/1B1N4/2rpn1pp/2bk1brq b - -",  # bm #-86
         "8/5ppp/5p2/8/NK6/1B1N4/2rpn1pp/2bk1brq w - -",  # bm #87
     ]:
         args.excludeSANs = "Nb6 Nb5 Nc4"
