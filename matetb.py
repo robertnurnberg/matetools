@@ -37,6 +37,7 @@ class MateTB:
         self.depth = args.depth
         playing_side = chess.BLACK if parts[1] == "b" else chess.WHITE
         self.mating_side = not playing_side if " bm #-" in args.epd else playing_side
+        self.mating_side_to_move = playing_side == self.mating_side
         print(f"Restrict moves for {'WHITE' if self.mating_side else 'BLACK'} side.")
 
         self.excludeSANs = [] if args.excludeSANs is None else args.excludeSANs.split()
@@ -453,7 +454,7 @@ class MateTB:
             return
         print("\nMultiPV:")
         for count, (score, pv) in enumerate(sp):
-            if score is None:
+            if score is None or (score < 0 and self.mating_side_to_move):
                 print(f"multipv {count+1} score None")
                 continue
             score_str = f"cp {score}"
@@ -468,10 +469,18 @@ class MateTB:
             print(f"multipv {count+1} score {score_str} pv {pvstr}")
             if self.verbose >= 2:
                 print(
-                    f"https://chessdb.cn/queryc_en/?{self.root_pos} moves {pvstr}\n".replace(
+                    f"https://chessdb.cn/queryc_en/?{self.root_pos} moves {pvstr}".replace(
                         " ", "_"
                     )
                 )
+                if score:
+                    child_pvstr = " ".join(pv[1:])
+                    board.push(chess.Move.from_uci(pv[0]))
+                    print(
+                        f"Child FEN: {board.epd()} bm #{score2mate(-score + (1 if score < 0 else -1))}; PV: {child_pvstr};"
+                    )
+                    board.pop()
+                print()
 
     def quit(self):
         if self.engine:
