@@ -401,9 +401,9 @@ class MateTB:
         for move in pv:
             board.push(chess.Move.from_uci(move))
         score = self.probe_tb(board.epd())
-        assert score and score > 0, f'Unexpected score {score} for "{board.epd()}".'
+        assert score, f'Unexpected score {score} for "{board.epd()}".'
         newpv, it = [], 0
-        while len(newpv) != len(pv) + VALUE_MATE - score:
+        while len(newpv) != len(pv) + VALUE_MATE - abs(score):
             limit = chess.engine.Limit(depth=it) if it else self.limit
             if self.verbose >= 4:
                 print(f'Analysing "{board.epd()}" to {limit}.')
@@ -414,7 +414,8 @@ class MateTB:
                     if self.verbose >= 3:
                         print(f'Found mate {m} analysing "{board.epd()}".')
                     s = mate2score(m)
-                    if s > score:
+                    assert s * score > 0, "Found mate with wrong sign"
+                    if abs(s) > abs(score):
                         print("Found shorter mate at end of PV, cannot complete PV.")
                         return ""
                     if s == score and "pv" in info:
