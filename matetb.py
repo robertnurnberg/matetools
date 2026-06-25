@@ -474,13 +474,10 @@ class MateTB:
                     )
                 )
                 if score:
-                    pvstr = " ".join(pv[1:])
-                    if self.engine and pvstr[-14:] == " ; PV is short":
-                        lpv = self.lengthen_pv(pvstr[:-14])
-                        pvstr = lpv if lpv else pvstr[:-14]
+                    child_pvstr = " ".join(pvstr.split()[1:])
                     board.push(chess.Move.from_uci(pv[0]))
                     print(
-                        f"Child FEN: {board.epd()} bm #{score2mate(-score + (1 if score < 0 else -1))}; PV: {pvstr};"
+                        f"Child FEN: {board.epd()} bm #{score2mate(-score + (1 if score < 0 else -1))}; PV: {child_pvstr};"
                     )
                     board.pop()
                 print()
