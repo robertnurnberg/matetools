@@ -75,8 +75,7 @@ for fen, pv in fens:
     if dtm:
         pv.reverse()
         board = chess.Board(fen)
-        dtm = (dtm + 1) // 2 if dtm % 2 else dtm // 2
-        msg += f" bm #{dtm}; PV:"
+        pvmoves = []
         while j.get("dtm") and (moves := j.get("moves")):
             bestuci = moves[0]["uci"]
             if pv:
@@ -87,10 +86,18 @@ for fen, pv in fens:
                             bestuci = uci
                         else:
                             break
-            msg += f" {bestuci}"
+            pvmoves.append(bestuci)
             board.push(chess.Move.from_uci(bestuci))
             if board.is_checkmate():
-                msg += ";"
+                walked_dtm = len(pvmoves) if len(pvmoves) % 2 else -len(pvmoves)
+                if walked_dtm != dtm:
+                    print(
+                        f'FEN "{fen}" has dtm at root: {dtm}, but length of optimal PV: {abs(walked_dtm)}.',
+                        file=sys.stderr,
+                    )
+                    dtm = walked_dtm
+                bm = (dtm + 1) // 2 if dtm % 2 else dtm // 2
+                msg = f" bm #{bm}; PV: " + " ".join(pvmoves) + ";"
                 break
             if board.can_claim_fifty_moves() or board.can_claim_threefold_repetition():
                 msg = ""
