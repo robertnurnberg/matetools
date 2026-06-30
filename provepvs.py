@@ -208,8 +208,11 @@ class Analyser:
                 if ban_move in rootmoves[dfen]:
                     rootmoves[dfen].remove(ban_move)
 
-                limit = copy.copy(self.limit)
-                limit.mate = max(1, -pvmate - 1)
+                if args.backstepMateLimit:
+                    limit = chess.engine.Limit(mate=-pvmate)
+                else:
+                    limit = copy.copy(self.limit)
+                    limit.mate = max(1, -pvmate - 1)
                 if rootmoves[dfen]:
                     print(
                         f'Analysing "{board.epd()}" at ply {ply} for better defense to {limit}, with rootmoves {[m.uci() for m in rootmoves[dfen]]}.',
@@ -408,6 +411,11 @@ if __name__ == "__main__":
         "--goForward",
         action="store_true",
         help="Check optimality of PVs by doing a forward analysis using the limits for the root position.",
+    )
+    parser.add_argument(
+        "--backstepMateLimit",
+        action="store_true",
+        help="When improving a suboptimal defense, use a pure go-mate limit.",
     )
     parser.add_argument(
         "--logFile",
