@@ -34,11 +34,15 @@ def pv_status(fen, mate, pv):
     return "wrong"
 
 
-def filtered_analysis(engine, board, limit=None, game=None):
+def filtered_analysis(engine, board, limit=None, multiPV=None, game=None):
     info = {}
-    with engine.analysis(board, limit, game=game) as analysis:
+    with engine.analysis(board, limit, multipv=multiPV, game=game) as analysis:
         for line in analysis:
-            if "score" in line and not ("upperbound" in line or "lowerbound" in line):
+            if (
+                "score" in line
+                and line.get("multipv", 1) == 1
+                and not ("upperbound" in line or "lowerbound" in line)
+            ):
                 info = line
     return info
 
@@ -52,6 +56,7 @@ class Analyser:
         )
         self.hash = args.hash
         self.threads = args.threads
+        self.multiPV = args.multiPV
         self.syzygyPath = args.syzygyPath
 
     def analyze_fens(self, fens):
@@ -66,7 +71,9 @@ class Analyser:
         for fen, bm, pvlength, line in fens:
             pv = None
             board = chess.Board(fen)
-            info = filtered_analysis(engine, board, self.limit, game=board)
+            info = filtered_analysis(
+                engine, board, self.limit, self.multiPV, game=board
+            )
             m = info["score"].pov(board.turn).mate() if "score" in info else None
             if m is not None and (bm is None or abs(m) <= abs(bm)) and "pv" in info:
                 pv = [m.uci() for m in info["pv"]]
@@ -110,6 +117,11 @@ if __name__ == "__main__":
         "--threads",
         type=int,
         help="number of threads per position",
+    )
+    parser.add_argument(
+        "--multiPV",
+        type=int,
+        help="maximal number of lines to search per position",
     )
     parser.add_argument("--syzygyPath", help="path to syzygy EGTBs")
     parser.add_argument(
