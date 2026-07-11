@@ -25,17 +25,27 @@ def pv_status(fen, mate, pv):
     return "wrong"
 
 
-def filtered_analysis(engine, board, limit=None, game=None, root_moves=None):
+def filtered_analysis(
+    engine, board, limit=None, multiPV=None, game=None, root_moves=None
+):
     info = {}
-    with engine.analysis(board, limit, game=game, root_moves=root_moves) as analysis:
+    with engine.analysis(
+        board, limit, multipv=multiPV, game=game, root_moves=root_moves
+    ) as analysis:
         for line in analysis:
-            if "score" in line and not ("upperbound" in line or "lowerbound" in line):
+            if (
+                "score" in line
+                and line.get("multipv", 1) == 1
+                and not ("upperbound" in line or "lowerbound" in line)
+            ):
                 info = line
     return info
 
 
-def analyze_and_print(engine, board, limit, game=None, root_moves=None, ply=None):
-    info = filtered_analysis(engine, board, limit, game, root_moves)
+def analyze_and_print(
+    engine, board, limit, multiPV=None, game=None, root_moves=None, ply=None
+):
+    info = filtered_analysis(engine, board, limit, multiPV, game, root_moves)
     if "score" in info:
         score = info["score"].pov(board.turn)
         depth = info["depth"] if "depth" in info else None
@@ -59,6 +69,7 @@ class Analyser:
             self.engine.configure({"Threads": args.threads})
         if args.hash is not None:
             self.engine.configure({"Hash": args.hash})
+        self.multiPV = args.multiPV
         if args.syzygyPath is not None:
             self.engine.configure({"SyzygyPath": args.syzygyPath})
         self.limit = chess.engine.Limit(
@@ -69,6 +80,7 @@ class Analyser:
         self.nodesFill = args.nodesFill
         self.timeFill = args.timeFill
         self.mateFill = args.mateFill
+        self.multiPvFill = args.multiPvFill
         self.completePV = args.completePV
         self.longestPV = args.longestPV
         self.trust = args.trust
@@ -104,7 +116,12 @@ class Analyser:
                     flush=True,
                 )
                 m, fillpv = analyze_and_print(
-                    self.engine, board, limit, game=board, ply=ply
+                    self.engine,
+                    board,
+                    limit,
+                    multiPV=args.multiPvFill,
+                    game=board,
+                    ply=ply,
                 )
                 if do_mate_fill and (m is None or abs(m) > abs(pvmate)):
                     print(f"error for 'go mate {abs(pvmate)}'.", flush=True)
@@ -137,7 +154,9 @@ class Analyser:
         while True:
             print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
             pv = None  # only mates with abs(m) <= abs(bm) will have pv defined
-            m, localpv = analyze_and_print(self.engine, board, limit, game=board)
+            m, localpv = analyze_and_print(
+                self.engine, board, limit, multiPV=args.multiPV, game=board
+            )
             if (
                 do_mate_fill
                 and limit == chess.engine.Limit(mate=abs(bm))
@@ -187,7 +206,7 @@ class Analyser:
             limit.mate = max(1, pvmate - 1)
             print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
             localm, localpv = analyze_and_print(
-                self.engine, board, limit, game=board, ply=ply
+                self.engine, board, limit, multiPV=args.multiPV, game=board, ply=ply
             )
             if localm is None or localm >= pvmate:
                 continue
@@ -222,6 +241,7 @@ class Analyser:
                         self.engine,
                         board,
                         limit,
+                        multiPV=args.multiPV,
                         game=board,
                         root_moves=rootmoves[dfen],
                         ply=ply,
@@ -268,6 +288,7 @@ class Analyser:
                     self.engine,
                     board,
                     limit,
+                    multiPV=args.multiPV,
                     game=board,
                     ply=ply,
                 )
@@ -357,6 +378,11 @@ if __name__ == "__main__":
         default=1,
         help="Number of threads per position.",
     )
+    parser.add_argument(
+        "--multiPV",
+        type=int,
+        help="maximal number of lines to search per position",
+    )
     parser.add_argument("--syzygyPath", help="Path to syzygy EGTBs.")
     parser.add_argument(
         "--depthMin",
@@ -385,6 +411,11 @@ if __name__ == "__main__":
         choices=["all", "won", "None"],
         default="None",
         help="Use mate limit for backward analysis in specified nodes of the PV (overrides all other limits, may lead to infinite analysis for incorrect PVs).",
+    )
+    parser.add_argument(
+        "--multiPvFill",
+        type=int,
+        help="maximal number of lines to search per position for backward analysis.",
     )
     parser.add_argument(
         "--longestPV",
@@ -437,15 +468,20 @@ if __name__ == "__main__":
     assert not args.longestPV or args.mateFill != "None", "Need --mateFill."
     assert not args.goForward or args.pvFile == args.epdFile, "Names need to match."
 
-    p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+    p = re.compile(r"^([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
 
     d = {}  # prepare "cheat sheet" from given mate PVs
     allowed = args.PVstatus.split("+")
     with open(args.pvFile) as f:
         for line in f:
+            if line.startswith("#"):  # ignore comments
+                continue
             m = p.match(line)
             assert m, f"error for line '{line[:-1]}' in file {args.pvFile}"
-            fen, bm = m.group(1), int(m.group(2))
+            fen = m.group(1)
+            bm = int(m.group(3)) if m.group(2) is not None else None
+            if bm is None:
+                continue
             _, _, pv = line.partition("; PV: ")
             pv, _, _ = pv[:-1].partition(";")  # remove '\n'
             pv = pv.split()
@@ -465,16 +501,21 @@ if __name__ == "__main__":
     ana_fens = []
     with open(args.epdFile) as f:
         for line in f:
+            if line.startswith("#"):  # ignore comments
+                continue
             m = p.match(line)
             if not m:
                 print("---------------------> IGNORING : ", line)
-            else:
-                fen, bm = m.group(1), int(m.group(2))
-                _, _, pv = line.partition("; PV: ")
-                pv, _, _ = pv[:-1].partition(";")  # remove '\n'
-                pv = pv.split()
-                if (args.goForward or pv_status(fen, bm, pv) != "ok") and fen in d:
-                    ana_fens.append((fen, *d[fen], pv))
+                continue
+            fen = m.group(1)
+            bm = int(m.group(3)) if m.group(2) is not None else None
+            _, _, pv = line.partition("; PV: ")
+            pv, _, _ = pv[:-1].partition(";")  # remove '\n'
+            pv = pv.split()
+            if (
+                args.goForward or bm is None or pv_status(fen, bm, pv) != "ok"
+            ) and fen in d:
+                ana_fens.append((fen, *d[fen], pv))
 
     total_count = len(ana_fens)
     print(f"Found {total_count} PVs we can use to try to prove/find mate PVs ...")
