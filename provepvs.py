@@ -120,7 +120,7 @@ class Analyser:
                     board,
                     limit,
                     multiPV=args.multiPvFill,
-                    game=board,
+                    game=None if args.keepTT else board,
                     ply=ply,
                 )
                 if do_mate_fill and (m is None or abs(m) > abs(pvmate)):
@@ -157,7 +157,11 @@ class Analyser:
             print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
             pv = None  # only mates with abs(m) <= abs(bm) will have pv defined
             m, localpv = analyze_and_print(
-                self.engine, board, limit, multiPV=args.multiPV, game=board
+                self.engine,
+                board,
+                limit,
+                multiPV=args.multiPV,
+                game=None if args.keepTT else board,
             )
             if (
                 do_mate_fill
@@ -213,7 +217,12 @@ class Analyser:
             limit.mate = max(1, pvmate - 1)
             print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
             localm, localpv = analyze_and_print(
-                self.engine, board, limit, multiPV=args.multiPV, game=board, ply=ply
+                self.engine,
+                board,
+                limit,
+                multiPV=args.multiPV,
+                game=None if args.keepTT else board,
+                ply=ply,
             )
             if localm is None or localm >= pvmate:
                 continue
@@ -249,7 +258,7 @@ class Analyser:
                         board,
                         limit,
                         multiPV=args.multiPV,
-                        game=board,
+                        game=None if args.keepTT else board,
                         root_moves=rootmoves[dfen],
                         ply=ply,
                     )
@@ -296,7 +305,7 @@ class Analyser:
                     board,
                     limit,
                     multiPV=args.multiPV,
-                    game=board,
+                    game=None if args.keepTT else board,
                     ply=ply,
                 )
                 if not dm or abs(dm) >= abs(pvmate) or not localpv:
@@ -423,6 +432,11 @@ if __name__ == "__main__":
         "--multiPvFill",
         type=int,
         help="maximal number of lines to search per position for backward analysis.",
+    )
+    parser.add_argument(
+        "--keepTT",
+        action="store_true",
+        help="Do not clear TT when starting to analyse a new root position.",
     )
     parser.add_argument(
         "--longestPV",
