@@ -494,12 +494,8 @@ if __name__ == "__main__":
                 pv = pv.split()
             if (
                 args.mateType == "all"
-                or args.mateType == "won"
-                and bm
-                and bm > 0
-                or args.mateType == "lost"
-                and bm
-                and bm < 0
+                or (args.mateType == "won" and bm and bm > 0)
+                or (args.mateType == "lost" and bm and bm < 0)
             ):
                 status = pv_status(fen, bm, pv) if pv else "missing"
                 if args.verbose:
