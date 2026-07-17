@@ -174,7 +174,7 @@ class Analyser:
                 if bestpv is None or abs(m) < abs(bestm) or len(pv) > len(bestpv):
                     bestm, bestpv = m, pv
             elif self.completePV:
-                if pv is not None and bm and pv_status(fen, bm, pv) == "ok":
+                if pv is not None and pv_status(fen, m, pv) == "ok":
                     break
             else:
                 break
