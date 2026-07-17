@@ -146,7 +146,9 @@ class Analyser:
             pvmate = -pvmate + (1 if pvmate <= 0 else 0)
 
         # finally do the actual analysis, to try to prove the mate
-        do_mate_fill = self.mateFill == "all" or (self.mateFill == "won" and pvmate > 0)
+        do_mate_fill = bm and (
+            self.mateFill == "all" or (self.mateFill == "won" and bm > 0)
+        )
         limit = chess.engine.Limit(mate=abs(bm)) if do_mate_fill else self.limit
 
         bestm, bestpv = None, None
@@ -163,7 +165,7 @@ class Analyser:
                 and (m is None or abs(m) > abs(bm))
             ):
                 print(f"error for 'go mate {abs(bm)}'.", flush=True)
-            if m is not None and abs(m) <= abs(bm) and localpv:
+            if m is not None and (bm is None or abs(m) <= abs(bm)) and localpv:
                 pv = localpv
             if self.longestPV:
                 if pv is None:  # if no mate is found anymore, return best found
@@ -172,16 +174,21 @@ class Analyser:
                 if bestpv is None or abs(m) < abs(bestm) or len(pv) > len(bestpv):
                     bestm, bestpv = m, pv
             elif self.completePV:
-                if pv is not None and pv_status(fen, bm, pv) == "ok":
+                if pv is not None and pv_status(fen, m, pv) == "ok":
                     break
             else:
                 break
             limit = chess.engine.Limit(depth=(limit.depth or self.depthMin) + 1)
 
         # if we found an improved mate or longer PV, do not perform forward analysis
-        if not args.goForward or (
-            m is not None
-            and (abs(m) < abs(bm) or (m == bm and pv and len(pv) > len(oldpv)))
+        if (
+            not args.goForward
+            or bm is None
+            or not oldpv
+            or (
+                m is not None
+                and (abs(m) < abs(bm) or (m == bm and pv and len(pv) > len(oldpv)))
+            )
         ):
             return m, pv, ""
 
@@ -436,7 +443,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--PVstatus",
         default="short+ok",
-        help="Filter the PVs to be loaded by status: ok, short, long, draw, wrong, all.",
+        help="Filter the PVs to be loaded by status: ok, short, long, draw, wrong, missing, all.",
     )
     parser.add_argument(
         "--goForward",
@@ -480,19 +487,17 @@ if __name__ == "__main__":
             assert m, f"error for line '{line[:-1]}' in file {args.pvFile}"
             fen = m.group(1)
             bm = int(m.group(3)) if m.group(2) is not None else None
-            if bm is None:
-                continue
-            _, _, pv = line.partition("; PV: ")
-            pv, _, _ = pv[:-1].partition(";")  # remove '\n'
-            pv = pv.split()
+            pv = []
+            if bm:
+                _, _, pv = line.partition("; PV: ")
+                pv, _, _ = pv[:-1].partition(";")  # remove '\n'
+                pv = pv.split()
             if (
                 args.mateType == "all"
-                or args.mateType == "won"
-                and bm > 0
-                or args.mateType == "lost"
-                and bm < 0
+                or (args.mateType == "won" and bm and bm > 0)
+                or (args.mateType == "lost" and bm and bm < 0)
             ):
-                status = pv_status(fen, bm, pv) if pv else "None"
+                status = pv_status(fen, bm, pv) if pv else "missing"
                 if args.verbose:
                     print(f'For "{line[:-1]}" got PV status {status}.')
                 if "all" in allowed or status in allowed:
@@ -518,7 +523,7 @@ if __name__ == "__main__":
                 ana_fens.append((fen, *d[fen], pv))
 
     total_count = len(ana_fens)
-    print(f"Found {total_count} PVs we can use to try to prove/find mate PVs ...")
+    print(f"Found {total_count} FENs we can try to prove/find mate PVs for ...")
 
     if args.logFile:
         print(f"Logging of engine output to {args.logFile} enabled.")
@@ -544,7 +549,7 @@ if __name__ == "__main__":
                 print("The old PV was suboptimal!")
 
             status = pv_status(fen, m, pv)
-            if abs(m) < abs(bm):
+            if bm is None or abs(m) < abs(bm):
                 print(
                     f"Found better mate #{m} for FEN {fen} bm #{bm}. PV has status {status}."
                 )
