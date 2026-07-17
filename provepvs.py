@@ -443,7 +443,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--PVstatus",
         default="short+ok",
-        help="Filter the PVs to be loaded by status: ok, short, long, draw, wrong, all.",
+        help="Filter the PVs to be loaded by status: ok, short, long, draw, wrong, missing, all.",
     )
     parser.add_argument(
         "--goForward",
@@ -501,7 +501,7 @@ if __name__ == "__main__":
                 and bm
                 and bm < 0
             ):
-                status = pv_status(fen, bm, pv) if pv else "None"
+                status = pv_status(fen, bm, pv) if pv else "missing"
                 if args.verbose:
                     print(f'For "{line[:-1]}" got PV status {status}.')
                 if "all" in allowed or status in allowed:
