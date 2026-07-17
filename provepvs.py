@@ -436,7 +436,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--keepTT",
         action="store_true",
-        help="Do not clear TT when starting to analyse a new root position.",
+        help="Do not clear the transposition table when starting to analyse a new root position.",
     )
     parser.add_argument(
         "--longestPV",
