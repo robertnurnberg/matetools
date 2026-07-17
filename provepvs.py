@@ -146,8 +146,8 @@ class Analyser:
             pvmate = -pvmate + (1 if pvmate <= 0 else 0)
 
         # finally do the actual analysis, to try to prove the mate
-        do_mate_fill = self.mateFill == "all" or (
-            self.mateFill == "won" and bm and bm > 0
+        do_mate_fill = bm and (
+            self.mateFill == "all" or (self.mateFill == "won" and bm > 0)
         )
         limit = chess.engine.Limit(mate=abs(bm)) if do_mate_fill else self.limit
 
