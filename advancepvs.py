@@ -77,7 +77,10 @@ if __name__ == "__main__":
                     bm = -bm + (1 if bm > 0 else 0)
                 fen = board.epd()
                 pv = pv[plies:]
-                f.write(f"{fen} bm #{bm}; PV: {' '.join(pv)};\n")
+                txt = f"{fen} bm #{bm};"
+                if pv:
+                    txt += f" PV: {' '.join(pv)};"
+                f.write(f"{txt}\n")
                 count += 1
             else:
                 f.write(line)
