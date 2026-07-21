@@ -48,26 +48,29 @@ if __name__ == "__main__":
     parser.add_argument(
         "--status",
         default="ok",
-        help="Filter the PVs by status: ok, short, long, draw, wrong, all.",
+        help="Filter the PVs by status: ok, short, long, draw, wrong, missing, all.",
     )
     args = parser.parse_args()
-
-    p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+    p = re.compile(r"^([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
 
     filtered = []
     allowed = args.status.split("+")
     with open_file(args.epdFile) as f:
         for line in f:
+            if line.startswith("#"):  # ignore comments
+                continue
             m = p.match(line)
             assert m, f"error for line '{line[:-1]}' in file {args.epdFile}"
-            fen, bm = m.group(1), int(m.group(2))
-            _, _, pv = line.partition("; PV: ")
-            pv, _, _ = pv[:-1].partition(";")  # remove '\n'
-            pv = pv.split()
-            if pv:
-                status = pv_status(fen, bm, pv)
-                if "all" in allowed or status in allowed:
-                    filtered.append(line)
+            fen = m.group(1)
+            bm = int(m.group(3)) if m.group(2) is not None else None
+            pv = []
+            if bm:
+                _, _, pv = line.partition("; PV: ")
+                pv, _, _ = pv[:-1].partition(";")  # remove '\n'
+                pv = pv.split()
+            status = pv_status(fen, bm, pv) if pv else "missing"
+            if "all" in allowed or status in allowed:
+                filtered.append(line)
 
     if filtered:
         with open(args.outFile, "w") as f:
