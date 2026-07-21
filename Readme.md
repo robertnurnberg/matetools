@@ -53,7 +53,7 @@ By way of example, the following EPD files are provided:
 * `matetrack.epd`: The successor to `ChestUCI_23102018.epd`, with all illegal positions removed and all known errors corrected. It contains 6554 mate problems, ranging from mate in 1 (#1) to #126 for positions with between 4 and 32 pieces. In 26 positions the side to move is going to get mated. 
 See [plot](images/matetrack.png?raw=true).
 * `matetrackpv.epd`: The same as `matetrack.epd` but with PVs leading to the checkmate where such a PV is known.
-* `matedtrackpv.epd`: Derived from `matetrackpv.epd` (using the script `advancepvs.py`) by advancing one ply in all positions with `bm>1` that have a PV. It contains 6536 unique positions, and in 6529 of these the side to move is going to get mated.
+* `matedtrackpv.epd`: Derived from `matetrackpv.epd` (using the script `advancepvs.py`) by advancing one ply in all positions with `bm>1` that have a PV. It contains 6536 unique positions, and in 6531 of these the side to move is going to get mated.
 * `matedtrack.epd`: The same as `matedtrackpv.epd`, but with the PV information removed. 
 See [plot](images/matedtrack.png?raw=true).
 * `mate-in-2.epd`: A collection of 6330 `bm #2` puzzles derived from `matetrackpv.epd`. The positions have between 3 and 32 pieces.
