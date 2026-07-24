@@ -250,7 +250,7 @@ if __name__ == "__main__":
         + " ".join([f"--{k} {v}" for k, v in limits if v is not None])
     )
 
-    print(f"\nretrocheck started for {msg} ...")
+    print(f"\nretrocheck started for {msg} ...", flush=True)
     engine = chess.engine.SimpleEngine.popen_uci(args.engine)
     name = engine.id.get("name", "")
     engine.quit()

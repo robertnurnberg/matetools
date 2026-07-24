@@ -18,15 +18,20 @@ if __name__ == "__main__":
         help="List of .epd files with possibly more or longer PVs.",
     )
     args = parser.parse_args()
-    p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+    p = re.compile(r"^([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
 
     d = {}  # the dict will hold the shortest mates, with longest PVs
     for filename in [args.source] + args.references:  # important to also read in source
         with open(filename) as f:
             for line in f:
+                if line.startswith("#"):  # ignore comments
+                    continue
                 m = p.match(line)
                 assert m, f"error for line '{line[:-1]}' in file {filename}"
-                fen, bm = m.group(1), int(m.group(2))
+                fen = m.group(1)
+                bm = int(m.group(3)) if m.group(2) is not None else None
+                if bm is None:
+                    continue
                 _, _, pv = line.partition("; PV: ")
                 pv, _, _ = pv[:-1].partition(";")  # remove '\n'
                 pv = pv.split()
@@ -44,12 +49,15 @@ if __name__ == "__main__":
 
     with open(args.source) as f:
         for line in f:
-            m = p.match(line)
-            fen, bmold = m.group(1), int(m.group(2))
-            bm, pv = d.get(fen, (None, None))
-            if pv is not None and pv:
+            bm, pv = None, None
+            if not line.startswith("#"):
+                m = p.match(line)
+                fen = m.group(1)
+                bmold = int(m.group(3)) if m.group(2) is not None else None
+                bm, pv = d.get(fen, (None, None))
+            if pv:
                 print(f"{fen} bm #{bm}; PV: {' '.join(pv)};")
-            elif bm is not None and abs(bm) < abs(bmold):
+            elif bm is not None and (bmold is None or abs(bm) < abs(bmold)):
                 print(f"{fen} bm #{bm};")
             else:
                 print(line[:-1])

@@ -34,11 +34,15 @@ def pv_status(fen, mate, pv):
     return "wrong"
 
 
-def filtered_analysis(engine, board, limit=None, game=None):
+def filtered_analysis(engine, board, limit=None, multiPV=None, game=None):
     info = {}
-    with engine.analysis(board, limit, game=game) as analysis:
+    with engine.analysis(board, limit, multipv=multiPV, game=game) as analysis:
         for line in analysis:
-            if "score" in line and not ("upperbound" in line or "lowerbound" in line):
+            if (
+                "score" in line
+                and line.get("multipv", 1) == 1
+                and not ("upperbound" in line or "lowerbound" in line)
+            ):
                 info = line
     return info
 
@@ -52,6 +56,7 @@ class Analyser:
         )
         self.hash = args.hash
         self.threads = args.threads
+        self.multiPV = args.multiPV
         self.syzygyPath = args.syzygyPath
 
     def analyze_fens(self, fens):
@@ -66,9 +71,11 @@ class Analyser:
         for fen, bm, pvlength, line in fens:
             pv = None
             board = chess.Board(fen)
-            info = filtered_analysis(engine, board, self.limit, game=board)
+            info = filtered_analysis(
+                engine, board, self.limit, self.multiPV, game=board
+            )
             m = info["score"].pov(board.turn).mate() if "score" in info else None
-            if m is not None and abs(m) <= abs(bm) and "pv" in info:
+            if m is not None and (bm is None or abs(m) <= abs(bm)) and "pv" in info:
                 pv = [m.uci() for m in info["pv"]]
                 if m == bm and len(pv) <= pvlength:  # no improvement
                     pv = None
@@ -111,6 +118,11 @@ if __name__ == "__main__":
         type=int,
         help="number of threads per position",
     )
+    parser.add_argument(
+        "--multiPV",
+        type=int,
+        help="maximal number of lines to search per position",
+    )
     parser.add_argument("--syzygyPath", help="path to syzygy EGTBs")
     parser.add_argument(
         "--concurrency",
@@ -130,9 +142,15 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--mateType",
-        choices=["all", "won", "lost"],
+        choices=["all", "won", "lost", "unknown"],
         default="won",
-        help="type of positions to find PVs for (WARNING: use all or lost only for reliable engines!)",
+        help="type of positions to find PVs for (WARNING: for unreliable engines use 'won'!)",
+    )
+    parser.add_argument(
+        "--TBlimit",
+        type=int,
+        default=1,
+        help="positions with this many pieces, or fewer, will be ignored",
     )
     args = parser.parse_args()
     if args.nodes is None and args.depth is None and args.time is None:
@@ -141,35 +159,48 @@ if __name__ == "__main__":
         args.nodes = eval(args.nodes)
 
     ana = Analyser(args)
-    p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+    p = re.compile(r"^([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
 
     print("Loading FENs ...")
 
-    fens, ana_fens = [], []
+    fens, ana_fens, fencount = [], [], 0
     with open(args.epdFile) as f:
         for line in f:
+            if line.startswith("#"):  # preserve comments
+                fens.append((None, line))
+                continue
             m = p.match(line)
             if not m:
                 print("---------------------> IGNORING : ", line)
-            else:
-                fen, bm = m.group(1), int(m.group(2))
-                _, _, pv = line.partition("; PV: ")
-                pv, _, _ = pv[:-1].partition(";")  # remove '\n'
-                pv = pv.split()
-                if (
+                continue
+            fen = m.group(1)
+            bm = int(m.group(3)) if m.group(2) is not None else None
+            _, _, pv = line.partition("; PV: ")
+            pv, _, _ = pv[:-1].partition(";")  # remove '\n'
+            pv = pv.split()
+            pc = sum(1 for char in fen.split()[0] if char.lower() in "pnbrqk")
+            if (
+                pc > args.TBlimit
+                and (
                     args.mateType == "all"
                     or args.mateType == "won"
+                    and bm is not None
                     and bm > 0
                     or args.mateType == "lost"
+                    and bm is not None
                     and bm < 0
-                ) and pv_status(fen, bm, pv) != "ok":
-                    ana_fens.append((fen, bm, len(pv), line))
-                fens.append((fen, line))
+                    or args.mateType == "unknown"
+                    and bm is None
+                )
+            ) and (bm is None or pv_status(fen, bm, pv) != "ok"):
+                ana_fens.append((fen, bm, len(pv), line))
+            fens.append((fen, line))
+            fencount += 1
 
     random.seed(42)
     random.shuffle(ana_fens)  # try to balance the analysis time across chunks
 
-    print(f"{len(fens)} FENs loaded, {len(ana_fens)} need analysis ...")
+    print(f"{fencount} FENs loaded, {len(ana_fens)} need analysis ...")
 
     numfen = len(ana_fens)
     workers = args.concurrency // (args.threads if args.threads else 1)
@@ -196,7 +227,7 @@ if __name__ == "__main__":
         + " ".join([f"--{k} {v}" for k, v in limits if v is not None])
     )
 
-    print(f"\nMate search started for {msg} ...")
+    print(f"\nMate search started for {msg} ...", flush=True)
 
     res = []
     futures = []
@@ -215,7 +246,7 @@ if __name__ == "__main__":
     d = {}
     count_found = better = 0
     for fen, bm, m, pv in res:
-        if m is not None and abs(m) < abs(bm):
+        if m is not None and (bm is None or abs(m) < abs(bm)):
             print(f"Found better mate #{m} for FEN {fen} bm #{bm}")
             bm = m
             better += 1
@@ -230,8 +261,9 @@ if __name__ == "__main__":
 
     with open(args.outFile, "w") as f:
         for fen, line in fens:
-            bm, pv = d.get(fen, (0, None))
-            if pv is not None:
-                f.write(f"{fen} bm #{bm}; PV: {' '.join(pv)};\n")
+            bm, pv = (None, None) if fen is None else d.get(fen, (None, None))
+            if bm is not None:
+                msg = f"{fen} bm #{bm};" + (f" PV: {' '.join(pv)};" if pv else "")
+                f.write(f"{msg}\n")
             else:
                 f.write(line)

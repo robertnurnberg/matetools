@@ -25,17 +25,27 @@ def pv_status(fen, mate, pv):
     return "wrong"
 
 
-def filtered_analysis(engine, board, limit=None, game=None, root_moves=None):
+def filtered_analysis(
+    engine, board, limit=None, multiPV=None, game=None, root_moves=None
+):
     info = {}
-    with engine.analysis(board, limit, game=game, root_moves=root_moves) as analysis:
+    with engine.analysis(
+        board, limit, multipv=multiPV, game=game, root_moves=root_moves
+    ) as analysis:
         for line in analysis:
-            if "score" in line and not ("upperbound" in line or "lowerbound" in line):
+            if (
+                "score" in line
+                and line.get("multipv", 1) == 1
+                and not ("upperbound" in line or "lowerbound" in line)
+            ):
                 info = line
     return info
 
 
-def analyze_and_print(engine, board, limit, game=None, root_moves=None, ply=None):
-    info = filtered_analysis(engine, board, limit, game, root_moves)
+def analyze_and_print(
+    engine, board, limit, multiPV=None, game=None, root_moves=None, ply=None
+):
+    info = filtered_analysis(engine, board, limit, multiPV, game, root_moves)
     if "score" in info:
         score = info["score"].pov(board.turn)
         depth = info["depth"] if "depth" in info else None
@@ -59,6 +69,7 @@ class Analyser:
             self.engine.configure({"Threads": args.threads})
         if args.hash is not None:
             self.engine.configure({"Hash": args.hash})
+        self.multiPV = args.multiPV
         if args.syzygyPath is not None:
             self.engine.configure({"SyzygyPath": args.syzygyPath})
         self.limit = chess.engine.Limit(
@@ -69,6 +80,7 @@ class Analyser:
         self.nodesFill = args.nodesFill
         self.timeFill = args.timeFill
         self.mateFill = args.mateFill
+        self.multiPvFill = args.multiPvFill
         self.completePV = args.completePV
         self.longestPV = args.longestPV
         self.trust = args.trust
@@ -104,7 +116,12 @@ class Analyser:
                     flush=True,
                 )
                 m, fillpv = analyze_and_print(
-                    self.engine, board, limit, game=board, ply=ply
+                    self.engine,
+                    board,
+                    limit,
+                    multiPV=self.multiPvFill,
+                    game=None if args.keepTT else board,
+                    ply=ply,
                 )
                 if do_mate_fill and (m is None or abs(m) > abs(pvmate)):
                     print(f"error for 'go mate {abs(pvmate)}'.", flush=True)
@@ -129,7 +146,9 @@ class Analyser:
             pvmate = -pvmate + (1 if pvmate <= 0 else 0)
 
         # finally do the actual analysis, to try to prove the mate
-        do_mate_fill = self.mateFill == "all" or (self.mateFill == "won" and pvmate > 0)
+        do_mate_fill = bm and (
+            self.mateFill == "all" or (self.mateFill == "won" and bm > 0)
+        )
         limit = chess.engine.Limit(mate=abs(bm)) if do_mate_fill else self.limit
 
         bestm, bestpv = None, None
@@ -137,14 +156,20 @@ class Analyser:
         while True:
             print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
             pv = None  # only mates with abs(m) <= abs(bm) will have pv defined
-            m, localpv = analyze_and_print(self.engine, board, limit, game=board)
+            m, localpv = analyze_and_print(
+                self.engine,
+                board,
+                limit,
+                multiPV=self.multiPV,
+                game=None if args.keepTT else board,
+            )
             if (
                 do_mate_fill
                 and limit == chess.engine.Limit(mate=abs(bm))
                 and (m is None or abs(m) > abs(bm))
             ):
                 print(f"error for 'go mate {abs(bm)}'.", flush=True)
-            if m is not None and abs(m) <= abs(bm) and localpv:
+            if m is not None and (bm is None or abs(m) <= abs(bm)) and localpv:
                 pv = localpv
             if self.longestPV:
                 if pv is None:  # if no mate is found anymore, return best found
@@ -153,16 +178,21 @@ class Analyser:
                 if bestpv is None or abs(m) < abs(bestm) or len(pv) > len(bestpv):
                     bestm, bestpv = m, pv
             elif self.completePV:
-                if pv is not None and pv_status(fen, bm, pv) == "ok":
+                if pv is not None and pv_status(fen, m, pv) == "ok":
                     break
             else:
                 break
             limit = chess.engine.Limit(depth=(limit.depth or self.depthMin) + 1)
 
         # if we found an improved mate or longer PV, do not perform forward analysis
-        if not args.goForward or (
-            m is not None
-            and (abs(m) < abs(bm) or (m == bm and pv and len(pv) > len(oldpv)))
+        if (
+            not args.goForward
+            or bm is None
+            or not oldpv
+            or (
+                m is not None
+                and (abs(m) < abs(bm) or (m == bm and pv and len(pv) > len(oldpv)))
+            )
         ):
             return m, pv, ""
 
@@ -187,7 +217,12 @@ class Analyser:
             limit.mate = max(1, pvmate - 1)
             print(f'Analysing "{board.epd()}" to {limit}.', flush=True)
             localm, localpv = analyze_and_print(
-                self.engine, board, limit, game=board, ply=ply
+                self.engine,
+                board,
+                limit,
+                multiPV=self.multiPV,
+                game=None if args.keepTT else board,
+                ply=ply,
             )
             if localm is None or localm >= pvmate:
                 continue
@@ -222,7 +257,8 @@ class Analyser:
                         self.engine,
                         board,
                         limit,
-                        game=board,
+                        multiPV=self.multiPV,
+                        game=None if args.keepTT else board,
                         root_moves=rootmoves[dfen],
                         ply=ply,
                     )
@@ -268,7 +304,8 @@ class Analyser:
                     self.engine,
                     board,
                     limit,
-                    game=board,
+                    multiPV=self.multiPV,
+                    game=None if args.keepTT else board,
                     ply=ply,
                 )
                 if not dm or abs(dm) >= abs(pvmate) or not localpv:
@@ -357,6 +394,11 @@ if __name__ == "__main__":
         default=1,
         help="Number of threads per position.",
     )
+    parser.add_argument(
+        "--multiPV",
+        type=int,
+        help="maximal number of lines to search per position",
+    )
     parser.add_argument("--syzygyPath", help="Path to syzygy EGTBs.")
     parser.add_argument(
         "--depthMin",
@@ -387,6 +429,16 @@ if __name__ == "__main__":
         help="Use mate limit for backward analysis in specified nodes of the PV (overrides all other limits, may lead to infinite analysis for incorrect PVs).",
     )
     parser.add_argument(
+        "--multiPvFill",
+        type=int,
+        help="maximal number of lines to search per position for backward analysis.",
+    )
+    parser.add_argument(
+        "--keepTT",
+        action="store_true",
+        help="Do not clear the transposition table when starting to analyse a new root position.",
+    )
+    parser.add_argument(
         "--longestPV",
         action="store_true",
         help="If --mateFill != None, then on final board try to get longest PV possible (until mate itself is lost).",
@@ -405,7 +457,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--PVstatus",
         default="short+ok",
-        help="Filter the PVs to be loaded by status: ok, short, long, draw, wrong, all.",
+        help="Filter the PVs to be loaded by status: ok, short, long, draw, wrong, missing, all.",
     )
     parser.add_argument(
         "--goForward",
@@ -437,26 +489,29 @@ if __name__ == "__main__":
     assert not args.longestPV or args.mateFill != "None", "Need --mateFill."
     assert not args.goForward or args.pvFile == args.epdFile, "Names need to match."
 
-    p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+    p = re.compile(r"^([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
 
     d = {}  # prepare "cheat sheet" from given mate PVs
     allowed = args.PVstatus.split("+")
     with open(args.pvFile) as f:
         for line in f:
+            if line.startswith("#"):  # ignore comments
+                continue
             m = p.match(line)
             assert m, f"error for line '{line[:-1]}' in file {args.pvFile}"
-            fen, bm = m.group(1), int(m.group(2))
-            _, _, pv = line.partition("; PV: ")
-            pv, _, _ = pv[:-1].partition(";")  # remove '\n'
-            pv = pv.split()
+            fen = m.group(1)
+            bm = int(m.group(3)) if m.group(2) is not None else None
+            pv = []
+            if bm:
+                _, _, pv = line.partition("; PV: ")
+                pv, _, _ = pv[:-1].partition(";")  # remove '\n'
+                pv = pv.split()
             if (
                 args.mateType == "all"
-                or args.mateType == "won"
-                and bm > 0
-                or args.mateType == "lost"
-                and bm < 0
+                or (args.mateType == "won" and bm and bm > 0)
+                or (args.mateType == "lost" and bm and bm < 0)
             ):
-                status = pv_status(fen, bm, pv) if pv else "None"
+                status = pv_status(fen, bm, pv) if pv else "missing"
                 if args.verbose:
                     print(f'For "{line[:-1]}" got PV status {status}.')
                 if "all" in allowed or status in allowed:
@@ -465,19 +520,24 @@ if __name__ == "__main__":
     ana_fens = []
     with open(args.epdFile) as f:
         for line in f:
+            if line.startswith("#"):  # ignore comments
+                continue
             m = p.match(line)
             if not m:
                 print("---------------------> IGNORING : ", line)
-            else:
-                fen, bm = m.group(1), int(m.group(2))
-                _, _, pv = line.partition("; PV: ")
-                pv, _, _ = pv[:-1].partition(";")  # remove '\n'
-                pv = pv.split()
-                if (args.goForward or pv_status(fen, bm, pv) != "ok") and fen in d:
-                    ana_fens.append((fen, *d[fen], pv))
+                continue
+            fen = m.group(1)
+            bm = int(m.group(3)) if m.group(2) is not None else None
+            _, _, pv = line.partition("; PV: ")
+            pv, _, _ = pv[:-1].partition(";")  # remove '\n'
+            pv = pv.split()
+            if (
+                args.goForward or bm is None or pv_status(fen, bm, pv) != "ok"
+            ) and fen in d:
+                ana_fens.append((fen, *d[fen], pv))
 
     total_count = len(ana_fens)
-    print(f"Found {total_count} PVs we can use to try to prove/find mate PVs ...")
+    print(f"Found {total_count} FENs we can try to prove/find mate PVs for ...")
 
     if args.logFile:
         print(f"Logging of engine output to {args.logFile} enabled.")
@@ -503,7 +563,7 @@ if __name__ == "__main__":
                 print("The old PV was suboptimal!")
 
             status = pv_status(fen, m, pv)
-            if abs(m) < abs(bm):
+            if bm is None or abs(m) < abs(bm):
                 print(
                     f"Found better mate #{m} for FEN {fen} bm #{bm}. PV has status {status}."
                 )

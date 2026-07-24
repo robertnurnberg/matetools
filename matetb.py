@@ -1068,11 +1068,11 @@ if __name__ == "__main__":
     ]
     options = " ".join(
         [
-            f"--{k}"
-            if type(v) == bool
-            else f'--{k} "{v}"'
-            if " " in str(v)
-            else f"--{k} {v}"
+            (
+                f"--{k}"
+                if type(v) == bool
+                else f'--{k} "{v}"' if " " in str(v) else f"--{k} {v}"
+            )
             for k, v in options
             if v is not None and str(v) != "False"
         ]
