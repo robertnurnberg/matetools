@@ -119,7 +119,7 @@ class Analyser:
                     self.engine,
                     board,
                     limit,
-                    multiPV=args.multiPvFill,
+                    multiPV=self.multiPvFill,
                     game=None if args.keepTT else board,
                     ply=ply,
                 )
@@ -160,7 +160,7 @@ class Analyser:
                 self.engine,
                 board,
                 limit,
-                multiPV=args.multiPV,
+                multiPV=self.multiPV,
                 game=None if args.keepTT else board,
             )
             if (
@@ -220,7 +220,7 @@ class Analyser:
                 self.engine,
                 board,
                 limit,
-                multiPV=args.multiPV,
+                multiPV=self.multiPV,
                 game=None if args.keepTT else board,
                 ply=ply,
             )
@@ -257,7 +257,7 @@ class Analyser:
                         self.engine,
                         board,
                         limit,
-                        multiPV=args.multiPV,
+                        multiPV=self.multiPV,
                         game=None if args.keepTT else board,
                         root_moves=rootmoves[dfen],
                         ply=ply,
@@ -304,7 +304,7 @@ class Analyser:
                     self.engine,
                     board,
                     limit,
-                    multiPV=args.multiPV,
+                    multiPV=self.multiPV,
                     game=None if args.keepTT else board,
                     ply=ply,
                 )
