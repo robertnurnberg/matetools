@@ -12,20 +12,24 @@ def open_file(filename):
 class data:
     def __init__(self, filename, debug=False):
         self.plies = Counter()
-        p = re.compile(r"([0-9a-zA-Z/\- ]*) bm #([0-9\-]*);")
+        p = re.compile(r"^([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
         loaded = set()
         self.bmplus = self.bmminus = 0
         with open_file(filename) as f:
             for line in f:
+                if line.startswith("#"):  # ignore comments
+                    continue
                 m = p.match(line)
                 if not m:
                     print("---------------------> IGNORING : ", line)
-                else:
-                    fen, bm = m.group(1), int(m.group(2))
-                    if fen in loaded:
-                        print(f"Warning: Found duplicate FEN {fen}.")
-                        continue
-                    loaded.add(fen)
+                    continue
+                fen = m.group(1)
+                bm = int(m.group(3)) if m.group(2) is not None else None
+                if fen in loaded:
+                    print(f"Warning: Found duplicate FEN {fen}.")
+                    continue
+                loaded.add(fen)
+                if bm:
                     plies = 2 * bm - 1 if bm > 0 else -2 * bm
                     self.plies[plies] += 1
                     if bm > 0:
@@ -33,15 +37,16 @@ class data:
                     else:
                         self.bmminus += 1
         self.filename = filename[:-3] if filename.endswith(".gz") else filename
-        self.bmmin = (min(self.plies.keys()) + 1) // 2
-        self.bmmax = (max(self.plies.keys()) + 1) // 2
+        totalbm = self.bmplus + self.bmminus
+        self.bmmin = ((min(self.plies.keys()) + 1) // 2) if totalbm else 0
+        self.bmmax = ((max(self.plies.keys()) + 1) // 2) if totalbm else 0
         print(
-            f"Loaded {len(loaded)} unique EPDs with |bm| in [{self.bmmin}, {self.bmmax}]."
+            f"Loaded {len(loaded)} unique EPDs with {totalbm} bm values, with |bm| in [{self.bmmin}, {self.bmmax}]."
         )
+        if not totalbm:
+            return
         s = sum((key + 1) // 2 * count for key, count in self.plies.items())
-        l = sum(self.plies.values())
-        if l:
-            print(f"Average for |bm| is {s/l:.2f}.")
+        print(f"Average for |bm| is {s/totalbm:.2f}.")
         if debug:
             print("bm frequencies:", end=" ")
             ply_count = sorted(self.plies.items(), key=lambda x: x[0])
@@ -55,6 +60,9 @@ class data:
             )
 
     def create_graph(self, cutOff):
+        totalbm = self.bmplus + self.bmminus
+        if not totalbm:
+            return
         plies = Counter()
         for p, freq in self.plies.items():
             if p > 2 * cutOff:
@@ -84,7 +92,7 @@ class data:
         ax.legend(handles=[pos, neg])
         ax.set_xlabel("|bm|")
         fig.suptitle(
-            f"Distribution plot for the {self.bmplus+self.bmminus} bm's in {self.filename}.",
+            f"Distribution plot for the {totalbm} bm's in {self.filename}.",
         )
         if max(self.plies.keys()) > 2 * cutOff:
             ax.set_title(
