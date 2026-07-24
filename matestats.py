@@ -37,15 +37,16 @@ class data:
                     else:
                         self.bmminus += 1
         self.filename = filename[:-3] if filename.endswith(".gz") else filename
-        self.bmmin = (min(self.plies.keys()) + 1) // 2
-        self.bmmax = (max(self.plies.keys()) + 1) // 2
         totalbm = self.bmplus + self.bmminus
+        self.bmmin = ((min(self.plies.keys()) + 1) // 2) if totalbm else 0
+        self.bmmax = ((max(self.plies.keys()) + 1) // 2) if totalbm else 0
         print(
             f"Loaded {len(loaded)} unique EPDs with {totalbm} bm values, with |bm| in [{self.bmmin}, {self.bmmax}]."
         )
+        if not totalbm:
+            return
         s = sum((key + 1) // 2 * count for key, count in self.plies.items())
-        if totalbm:
-            print(f"Average for |bm| is {s/totalbm:.2f}.")
+        print(f"Average for |bm| is {s/totalbm:.2f}.")
         if debug:
             print("bm frequencies:", end=" ")
             ply_count = sorted(self.plies.items(), key=lambda x: x[0])
@@ -59,6 +60,9 @@ class data:
             )
 
     def create_graph(self, cutOff):
+        totalbm = self.bmplus + self.bmminus
+        if not totalbm:
+            return
         plies = Counter()
         for p, freq in self.plies.items():
             if p > 2 * cutOff:
@@ -88,7 +92,7 @@ class data:
         ax.legend(handles=[pos, neg])
         ax.set_xlabel("|bm|")
         fig.suptitle(
-            f"Distribution plot for the {self.bmplus+self.bmminus} bm's in {self.filename}.",
+            f"Distribution plot for the {totalbm} bm's in {self.filename}.",
         )
         if max(self.plies.keys()) > 2 * cutOff:
             ax.set_title(
