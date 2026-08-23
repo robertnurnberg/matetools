@@ -9,6 +9,17 @@ def open_file(filename):
     return open_func(filename, "rt")
 
 
+def shrink_number_string(s):
+    s = str(s)
+    if s.endswith("0" * 9):
+        return s[:-9] + "G"
+    elif s.endswith("0" * 6):
+        return s[:-6] + "M"
+    elif s.endswith("0" * 3):
+        return s[:-3] + "K"
+    return s
+
+
 class data:
     def __init__(self, filename, debug=False):
         self.plies = Counter()
@@ -91,8 +102,9 @@ class data:
         )
         ax.legend(handles=[pos, neg])
         ax.set_xlabel("|bm|")
+        totalStr = shrink_number_string(totalbm)
         fig.suptitle(
-            f"Distribution plot for the {totalbm} bm's in {self.filename}.",
+            f"Distribution plot for the {totalStr} bm's in {self.filename}.",
         )
         if max(self.plies.keys()) > 2 * cutOff:
             ax.set_title(
