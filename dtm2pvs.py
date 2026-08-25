@@ -17,7 +17,7 @@ def get_6men_fens(filename):
             parts = line.split()
             fen = " ".join(parts[:4])
             count = sum(1 for char in parts[0] if char.lower() in "pnbrqk")
-            if count > 6:
+            if count > 6 or (len(parts) > 2 and parts[2] != "-"):
                 continue
             _, _, pv = line.partition("; PV: ")
             pv, _, _ = pv[:-1].partition(";")  # remove '\n'
