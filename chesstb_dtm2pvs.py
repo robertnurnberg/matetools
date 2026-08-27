@@ -1,4 +1,4 @@
-import argparse, chess, gzip, os, requests, sys, time
+import argparse, chess, gzip, os, re, requests, sys, time
 import chess.chesstb as chesstb
 
 TABLEBASE_URL = "https://huggingface.co/buckets/noobpwnftw/chesstb/resolve/full"
@@ -128,21 +128,37 @@ def open_file_rt(filename):
 
 
 def get_6men_fens_without_cr(filename):
+    p = re.compile(r"^([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
     fens, withpv = [], 0
     with open_file_rt(filename) as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
-            parts = line.split()
-            fen = " ".join(parts[:4])
-            count = sum(1 for char in parts[0] if char.lower() in "pnbrqk")
-            if count > 6 or (len(parts) > 2 and parts[2] != "-"):
+            m = p.match(line)
+            assert m, f"error for line '{line[:-1]}' in file {args.pvFile}"
+            fen = m.group(1)
+            bm = int(m.group(3)) if m.group(2) is not None else None
+            pv = []
+            if bm:
+                _, _, pv = line.partition("; PV: ")
+                pv, _, _ = pv[:-1].partition(";")  # remove '\n'
+                pv = pv.split()
+            moves = list(reversed(pv))
+            root_in_tb = True
+            board = chess.Board(fen)
+            while chess.popcount(board.occupied) > 6 and moves:
+                ucimove = moves.pop()
+                board.push(chess.Move.from_uci(ucimove))
+                root_in_tb = False
+            if (
+                chess.popcount(board.occupied) > 6
+                or board.has_castling_rights(chess.WHITE)
+                or board.has_castling_rights(chess.BLACK)
+                or not bool(board.legal_moves)
+            ):
                 continue
-            _, _, pv = line.partition("; PV: ")
-            pv, _, _ = pv[:-1].partition(";")  # remove '\n'
-            pv = pv.split()
-            fens.append((fen, pv))
+            fens.append((fen, bm, pv, root_in_tb))
             withpv += int(bool(pv))
     return fens, withpv
 
@@ -187,19 +203,36 @@ def get_chesstb_child_dtm(tb, board, move, dtm):
     return child_dtm, expected_dtm
 
 
-def sanitize_pv(tb, fen, pv):
+def sanitize_pv(tb, fen, bm, pv, root_in_tb):
     board = chess.Board(fen)
-    if not bool(board.legal_moves):
-        cs = "check" if board.is_checkmate() else "stale"
-        print(f'FEN "{fen}" is {cs}mate.', file=sys.stderr)
-        return ""
-    dtm = get_chesstb_dtm(tb, board)
-    if not dtm:
-        return ""
-    msg = ""
-    pv.reverse()
     pvmoves = []
-    dtm_at_root = dtm
+    dtm_at_root = None
+    if not root_in_tb:
+        pv.reverse()
+        dtm_at_root = dtm = (2 * bm - 1) if bm > 0 else 2 * bm
+        while chess.popcount(board.occupied) > 6 and pv:
+            ucimove = pv.pop()
+            board.push(chess.Move.from_uci(ucimove))
+            pvmoves.append(ucimove)
+            dtm = -dtm + (1 if dtm > 0 else -1)
+
+    # now board is a 6men position without cr
+    first_dtm = get_chesstb_dtm(tb, board)
+    if not first_dtm:
+        return ""
+
+    if dtm_at_root is not None:
+        if dtm != first_dtm:
+            print(
+                f'FEN "{board.fen()}" has dtm {first_dtm}, but bm #{bm} suggests dtm {dtm}.',
+                file=sys.stderr,
+            )
+            return f" bm #{bm}; PV: " + " ".join(pvmoves) + ";"
+    else:
+        pv.reverse()
+        dtm_at_root = dtm = first_dtm
+
+    msg = ""
     while True:
         bestuci, uci = None, None
         if pv:
@@ -269,7 +302,7 @@ if args.verbose:
         print(f"Of those with (partial) PV to check: {withpv}.", file=sys.stderr)
 
 with chesstb.open_tablebase(TABLEBASE_URL) as tb:
-    for fen, pv in fens:
+    for fen, bm, pv, ritb in fens:
         print(fen, end="", flush=True)
-        msg = sanitize_pv(tb, fen, pv)
+        msg = sanitize_pv(tb, fen, bm, pv, ritb)
         print(msg)
