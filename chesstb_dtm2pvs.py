@@ -132,8 +132,7 @@ def get_6men_fens_without_cr(filename):
     fens, withpv = [], 0
     with open_file_rt(filename) as f:
         for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
+            if line.startswith("#"):
                 continue
             m = p.match(line)
             assert m, f"error for line '{line[:-1]}' in file {filename}"
