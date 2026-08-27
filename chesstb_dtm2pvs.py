@@ -136,7 +136,7 @@ def get_6men_fens_without_cr(filename):
             if not line or line.startswith("#"):
                 continue
             m = p.match(line)
-            assert m, f"error for line '{line[:-1]}' in file {args.pvFile}"
+            assert m, f"error for line '{line[:-1]}' in file {filename}"
             fen = m.group(1)
             bm = int(m.group(3)) if m.group(2) is not None else None
             pv = []
