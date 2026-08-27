@@ -1,4 +1,4 @@
-import argparse, chess, gzip, os, re, requests, sys, time
+import argparse, chess, gzip, re, requests, sys, time
 import chess.chesstb as chesstb
 
 TABLEBASE_URL = "https://huggingface.co/buckets/noobpwnftw/chesstb/resolve/full"
@@ -231,7 +231,6 @@ def sanitize_pv(tb, fen, bm, pv, root_in_tb):
         pv.reverse()
         dtm_at_root = dtm = first_dtm
 
-    msg = ""
     while True:
         bestuci, uci = None, None
         if pv:
@@ -303,5 +302,4 @@ if args.verbose:
 with chesstb.open_tablebase(TABLEBASE_URL) as tb:
     for fen, bm, pv, ritb in fens:
         print(fen, end="", flush=True)
-        msg = sanitize_pv(tb, fen, bm, pv, ritb)
-        print(msg)
+        print(sanitize_pv(tb, fen, bm, pv, ritb))
