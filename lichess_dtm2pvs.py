@@ -7,7 +7,7 @@ def open_file_rt(filename):
     return open_func(filename, "rt")
 
 
-def get_6men_fens(filename):
+def get_6men_fens_without_cr(filename):
     fens, withpv = [], 0
     with open_file_rt(filename) as f:
         for line in f:
@@ -107,7 +107,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-fens, withpv = get_6men_fens(args.filename)
+fens, withpv = get_6men_fens_without_cr(args.filename)
 if args.verbose:
     print(f"Total number of positions to process: {len(fens)}.", file=sys.stderr)
     if withpv:
