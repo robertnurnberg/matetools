@@ -98,7 +98,9 @@ def patch_remote_seam():
     chesstb._TableFile._open_source = lambda self, path: RemoteSource(path)
 
     def _custom_find(self, kind, name, ext):
-        return f"{TABLEBASE_URL}/{kind}/{name}{ext}"
+        # 'r' signals a rook with castling rights
+        base = f"{TABLEBASE_URL}/castling" if "r" in name else TABLEBASE_URL
+        return f"{base}/{kind}/{name}{ext}"
 
     chesstb.Tablebase._find = _custom_find
 
@@ -127,7 +129,7 @@ def open_file_rt(filename):
     return open_func(filename, "rt")
 
 
-def get_6men_fens_without_cr(filename):
+def get_6men_fens(filename):
     p = re.compile(r"^([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
     fens, withpv = [], 0
     with open_file_rt(filename) as f:
@@ -152,8 +154,6 @@ def get_6men_fens_without_cr(filename):
                 root_in_tb = False
             if (
                 chess.popcount(board.occupied) > 6
-                or board.has_castling_rights(chess.WHITE)
-                or board.has_castling_rights(chess.BLACK)
                 or not bool(board.legal_moves)
             ):
                 continue
@@ -215,7 +215,7 @@ def sanitize_pv(tb, fen, bm, pv, root_in_tb):
             pvmoves.append(ucimove)
             dtm = -dtm + (1 if dtm > 0 else -1)
 
-    # now board is a 6men position without cr
+    # now board is a 6men position
     first_dtm = get_chesstb_dtm(tb, board)
     if not first_dtm:
         return ""
@@ -293,7 +293,7 @@ parser.add_argument(
 args = parser.parse_args()
 patch_remote_seam()
 
-fens, withpv = get_6men_fens_without_cr(args.filename)
+fens, withpv = get_6men_fens(args.filename)
 if args.verbose:
     print(f"Total number of positions to process: {len(fens)}.", file=sys.stderr)
     if withpv:
