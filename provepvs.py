@@ -73,8 +73,14 @@ class Analyser:
         if args.syzygyPath is not None:
             self.engine.configure({"SyzygyPath": args.syzygyPath})
         self.limit = chess.engine.Limit(
-            nodes=args.nodes, depth=args.depth, time=args.time, mate=args.mate
+            nodes=args.nodes,
+            depth=args.depth,
+            time=args.time,
+            mate=args.mate if args.mate else None,
         )
+        self.mate = args.mate
+        if self.mate is not None and self.mate == 0:
+            self.nodes, self.depth, self.time = args.nodes, args.depth, args.time
         self.depthMin = args.depthMin
         self.depthMax = args.depthMax
         self.nodesFill = args.nodesFill
@@ -149,7 +155,14 @@ class Analyser:
         do_mate_fill = bm and (
             self.mateFill == "all" or (self.mateFill == "won" and bm > 0)
         )
-        limit = chess.engine.Limit(mate=abs(bm)) if do_mate_fill else self.limit
+        if do_mate_fill:
+            limit = chess.engine.Limit(mate=abs(bm))
+        elif self.mate is not None and self.mate == 0 and bm:
+            limit = chess.engine.Limit(
+                nodes=self.nodes, depth=self.depth, time=self.time, mate=abs(bm)
+            )
+        else:
+            limit = self.limit
 
         bestm, bestpv = None, None
         oldpv = pv
@@ -383,7 +396,11 @@ if __name__ == "__main__":
         help="Nodes limit per position, default: 10**6 without other limits, otherwise None.",
     )
     parser.add_argument("--depth", type=int, help="Depth limit per puzzle position.")
-    parser.add_argument("--mate", type=int, help="Mate limit per puzzle position.")
+    parser.add_argument(
+        "--mate",
+        type=int,
+        help="Mate limit per puzzle position. A value of 0 will use bm #X (from PVFILE) as the limit.",
+    )
     parser.add_argument(
         "--time", type=float, help="Time limit (in seconds) per puzzle position."
     )
