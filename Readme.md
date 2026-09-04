@@ -60,6 +60,7 @@ See [plot](images/matedtrack.png?raw=true).
 See [plot](images/mates2000.png?raw=true).
 * `*1000pv.epd`: Collections of classic endgame mates with 1000 positions each, where white mates. See the plots for [KRvK](images/KRvK1000pv.png?raw=true), [KBNvK](images/KBNvK1000pv.png?raw=true), [KBBvK](images/KBBvK1000pv.png?raw=true), [KQvKP](images/KQvKP1000pv.png?raw=true), [KQvKR](images/KQvKR1000pv.png?raw=true), [KRBvKR](images/KRBvKR1000pv.png?raw=true), [KRPvKR](images/KRPvKR1000pv.png?raw=true), [KBPvKB](images/KBPvKB1000pv.png?raw=true), [KNNvKP](images/KNNvKP1000pv.png?raw=true).
 * `classic280.epd`: A collection of 280 classic endgame mates, derived from `*1000pv.epd` by sampling 40 positions each from KRvK, KBNvK, KBBvK, KQvKP, KQvKR, KRPvKR, KBPvKB. See [plot](images/classic280.png?raw=true).
+* `*_multipv.epd`: Collections with positions 1 ply from the original set. Their `bm` values are for zero half move counters, so may be more optimistic/pessimistic than those for the actual child positions.
 * `fishmates.epd.gz`: This collection of 1M mates has been renamed to
 `fishmates_v1.epd.gz` and moved to
 [robertnurnberg/matezoo](https://github.com/robertnurnberg/matezoo).
