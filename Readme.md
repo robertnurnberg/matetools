@@ -25,10 +25,11 @@ The following scripts are provided:
   processed)
 * `advancepvs.py`: advances a number of plies in the given PVs to create new puzzles
 * `bm2multipv.py`: creates a skeleton `_multipv.epd` file with all the positions 1 ply from the given puzzles
+* `chesstb_dtm2pvs.py`: checks and corrects PVs with the help of the 6men DTM50 tables from the [chesstb](https://github.com/noobpwnftw/chesstb) tables on [Hugging Face](https://huggingface.co/buckets/noobpwnftw/chesstb)
 * `deducepvs.py`: uses proven PVs, and the associated PVs for all
   the positions along the mating lines, to find possibly missing PVs
 * `diffmates.py`: compares two Chest-like EPD files
-* `dtm2pvs.py`: checks and corrects PVs with the help of 
+* `lichess_dtm2pvs.py`: checks and corrects PVs with the help of the 6men DTM tables from the
   [Lichess Tablebase API](https://lichess.org/api#tag/tablebase)
 * `filterpvs.py`: filters positions by the status of their PVs
 * `matestats.py`: generates a distribution plot for the `bm` values found in a given EPD file
