@@ -1,8 +1,8 @@
-import argparse, random, re, sys, concurrent.futures, chess, chess.engine, chess.syzygy, logging
+import argparse, chess, chess.engine, chess.syzygy, concurrent.futures, json, logging, os, random, re, signal, sys
 from time import time
-from multiprocessing import freeze_support, cpu_count
+from concurrent.futures.process import BrokenProcessPool
+from multiprocessing import freeze_support, cpu_count, active_children
 from tqdm import tqdm
-import json
 
 
 def chunks(lst, n):
@@ -168,6 +168,16 @@ if __name__ == "__main__":
         "--logFile",
         help="Optional file to log the engine's output while it is analysing.",
     )
+    parser.add_argument(
+        "--bmMin",
+        type=int,
+        help="lower limit for |bm| for positions to analyse",
+    )
+    parser.add_argument(
+        "--bmMax",
+        type=int,
+        help="upper limit for |bm| for positions to analyse",
+    )
     args = parser.parse_args()
     if args.nodes is None and args.depth is None and args.time is None:
         args.nodes = 10**6
@@ -198,6 +208,10 @@ if __name__ == "__main__":
                     print("---------------------> IGNORING : ", line)
                 else:
                     fen, bm = m.group(1), int(m.group(2))
+                    if (args.bmMin is not None and abs(bm) < args.bmMin) or (
+                        args.bmMax is not None and abs(bm) > args.bmMax
+                    ):
+                        continue
                     _, _, pv = line.partition("; PV: ")
                     pv, _, _ = pv[:-1].partition(";")  # remove '\n'
                     pv = pv.split()
@@ -212,12 +226,17 @@ if __name__ == "__main__":
                     else:
                         fens[fen] = bm, pv
 
-    maxbm = max([abs(bm) for bm, _ in fens.values()]) if fens else 0
+    absbms = [abs(bm) for bm, _ in fens.values()]
+    numbm = len(absbms)
+    absbms = absbms if absbms else [0]
+    maxbm = max(absbms)
     fens = list(fens.items())
     random.seed(42)
     random.shuffle(fens)  # try to balance the analysis time across chunks
 
-    print(f"Loaded {len(fens)} FENs, with max(|bm|) = {maxbm}.")
+    print(
+        f"Loaded {len(fens)} FENs with {numbm} bm values, with |bm| (min avg max): {min(absbms)} {round(sum(absbms) / len(absbms))} {maxbm}."
+    )
 
     numfen = len(fens)
     workers = args.concurrency // (args.threads if args.threads else 1)
@@ -231,6 +250,8 @@ if __name__ == "__main__":
         print("Additional generic engine options: ", args.engineOpts)
 
     limits = [
+        ("bmMin", args.bmMin),
+        ("bmMax", args.bmMax),
         ("nodes", args.nodes),
         ("depth", args.depth),
         ("time", args.time),
@@ -260,12 +281,32 @@ if __name__ == "__main__":
 
     with tqdm(total=len(fenschunked), smoothing=0, miniters=1) as pbar:
         with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as e:
-            for entry in fenschunked:
-                futures.append(e.submit(ana.analyze_fens, entry))
+            try:
+                for entry in fenschunked:
+                    futures.append(e.submit(ana.analyze_fens, entry))
 
-            for future in concurrent.futures.as_completed(futures):
-                pbar.update(1)
-                res += future.result()
+                for future in concurrent.futures.as_completed(futures):
+                    pbar.update(1)
+                    res += future.result()
+            except (
+                chess.engine.EngineTerminatedError,
+                BrokenProcessPool,
+                KeyboardInterrupt,
+            ) as ex:
+                if isinstance(ex, KeyboardInterrupt):
+                    reason = "Interrupted"
+                else:
+                    reason = f"FATAL ERROR: Engine or worker crashed ({type(ex).__name__}: {ex})"
+                print(f"\n{reason}. Terminating immediately.", file=sys.stderr)
+                sys.stdout.flush()
+                sys.stderr.flush()
+                e.shutdown(wait=False, cancel_futures=True)
+                if sys.platform != "win32":
+                    os.killpg(os.getpgrp(), signal.SIGKILL)
+                else:
+                    for child in active_children():
+                        child.kill()  # Forcefully kill the running worker processes
+                    os._exit(1)
 
     print("")
 
