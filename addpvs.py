@@ -1,5 +1,5 @@
-import argparse, chess, chess.engine, concurrent.futures, random, re
-from multiprocessing import freeze_support, cpu_count
+import argparse, chess, chess.engine, os, random, re, signal, sys
+from multiprocessing import freeze_support, cpu_count, active_children, Pool
 from time import time
 from tqdm import tqdm
 
@@ -152,6 +152,16 @@ if __name__ == "__main__":
         default=1,
         help="positions with this many pieces, or fewer, will be ignored",
     )
+    parser.add_argument(
+        "--bmMin",
+        type=int,
+        help="lower limit for |bm| for positions to analyse",
+    )
+    parser.add_argument(
+        "--bmMax",
+        type=int,
+        help="upper limit for |bm| for positions to analyse",
+    )
     args = parser.parse_args()
     if args.nodes is None and args.depth is None and args.time is None:
         args.nodes = 10**6
@@ -160,8 +170,6 @@ if __name__ == "__main__":
 
     ana = Analyser(args)
     p = re.compile(r"^([1-8a-zA-Z/]+ [wb] [a-zA-Z\-]+ [a-h1-8\-]+)( bm #(-?\d+);)?")
-
-    print("Loading FENs ...")
 
     fens, ana_fens, fencount = [], [], 0
     with open(args.epdFile) as f:
@@ -179,28 +187,41 @@ if __name__ == "__main__":
             pv, _, _ = pv[:-1].partition(";")  # remove '\n'
             pv = pv.split()
             pc = sum(1 for char in fen.split()[0] if char.lower() in "pnbrqk")
+            bm_ok = (
+                args.bmMin is None or (bm is not None and abs(bm) >= args.bmMin)
+            ) and (args.bmMax is None or (bm is not None and abs(bm) <= args.bmMax))
             if (
-                pc > args.TBlimit
+                bm_ok
                 and (
-                    args.mateType == "all"
-                    or args.mateType == "won"
-                    and bm is not None
-                    and bm > 0
-                    or args.mateType == "lost"
-                    and bm is not None
-                    and bm < 0
-                    or args.mateType == "unknown"
-                    and bm is None
+                    pc > args.TBlimit
+                    and (
+                        args.mateType == "all"
+                        or args.mateType == "won"
+                        and bm is not None
+                        and bm > 0
+                        or args.mateType == "lost"
+                        and bm is not None
+                        and bm < 0
+                        or args.mateType == "unknown"
+                        and bm is None
+                    )
                 )
-            ) and (bm is None or pv_status(fen, bm, pv) != "ok"):
+                and (bm is None or pv_status(fen, bm, pv) != "ok")
+            ):
                 ana_fens.append((fen, bm, len(pv), line))
             fens.append((fen, line))
             fencount += 1
 
+    absbms = [abs(bm) for _, bm, _, _ in ana_fens if bm is not None]
+    numbm = len(absbms)
+    absbms = absbms if absbms else [0]
+    maxbm = max(absbms)
     random.seed(42)
     random.shuffle(ana_fens)  # try to balance the analysis time across chunks
 
-    print(f"{fencount} FENs loaded, {len(ana_fens)} need analysis ...")
+    print(
+        f"{fencount} FENs loaded, {len(ana_fens)} need analysis, with {numbm} bm values, with |bm| (min avg max): {min(absbms)} {round(sum(absbms) / len(absbms))} {maxbm}."
+    )
 
     numfen = len(ana_fens)
     workers = args.concurrency // (args.threads if args.threads else 1)
@@ -211,6 +232,8 @@ if __name__ == "__main__":
     fenschunked = list(chunks(ana_fens, max(1, fw_ratio)))
 
     limits = [
+        ("bmMin", args.bmMin),
+        ("bmMax", args.bmMax),
         ("nodes", args.nodes),
         ("depth", args.depth),
         ("time", args.time),
@@ -230,16 +253,27 @@ if __name__ == "__main__":
     print(f"\nMate search started for {msg} ...", flush=True)
 
     res = []
-    futures = []
 
     with tqdm(total=len(fenschunked), smoothing=0, miniters=1) as pbar:
-        with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as e:
-            for entry in fenschunked:
-                futures.append(e.submit(ana.analyze_fens, entry))
-
-            for future in concurrent.futures.as_completed(futures):
-                pbar.update(1)
-                res += future.result()
+        with Pool(processes=workers) as e:
+            try:
+                for future in e.imap_unordered(ana.analyze_fens, fenschunked):
+                    pbar.update(1)
+                    res += future
+            except chess.engine.EngineTerminatedError as ex:
+                print(
+                    f"\nFATAL ERROR: Engine or worker crashed ({type(ex).__name__}: {ex}). Terminating immediately.",
+                    file=sys.stderr,
+                )
+                sys.stdout.flush()
+                sys.stderr.flush()
+                e.terminate()
+                if sys.platform != "win32":
+                    os.killpg(os.getpgrp(), signal.SIGKILL)
+                else:
+                    for child in active_children():
+                        child.kill()  # Forcefully kill the running worker processes
+                    os._exit(1)
 
     print("")
 
