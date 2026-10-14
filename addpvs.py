@@ -265,11 +265,16 @@ if __name__ == "__main__":
                 for future in concurrent.futures.as_completed(futures):
                     pbar.update(1)
                     res += future.result()
-            except (chess.engine.EngineTerminatedError, BrokenProcessPool) as ex:
-                print(
-                    f"\nFATAL ERROR: Engine or worker crashed ({type(ex).__name__}: {ex}). Terminating immediately.",
-                    file=sys.stderr,
-                )
+            except (
+                chess.engine.EngineTerminatedError,
+                BrokenProcessPool,
+                KeyboardInterrupt,
+            ) as ex:
+                if isinstance(ex, KeyboardInterrupt):
+                    reason = "Interrupted"
+                else:
+                    reason = f"FATAL ERROR: Engine or worker crashed ({type(ex).__name__}: {ex})"
+                print(f"\n{reason}. Terminating immediately.", file=sys.stderr)
                 sys.stdout.flush()
                 sys.stderr.flush()
                 e.shutdown(wait=False, cancel_futures=True)
