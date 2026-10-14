@@ -1,6 +1,7 @@
-import argparse, chess, chess.engine, chess.syzygy, json, logging, os, random, re, signal, sys
+import argparse, chess, chess.engine, chess.syzygy, concurrent.futures, json, logging, os, random, re, signal, sys
 from time import time
-from multiprocessing import freeze_support, cpu_count, active_children, Pool
+from concurrent.futures.process import BrokenProcessPool
+from multiprocessing import freeze_support, cpu_count, active_children
 from tqdm import tqdm
 
 
@@ -276,21 +277,25 @@ if __name__ == "__main__":
     engine.quit()
 
     res = []
+    futures = []
 
     with tqdm(total=len(fenschunked), smoothing=0, miniters=1) as pbar:
-        with Pool(processes=workers) as e:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as e:
             try:
-                for future in e.imap_unordered(ana.analyze_fens, fenschunked):
+                for entry in fenschunked:
+                    futures.append(e.submit(ana.analyze_fens, entry))
+
+                for future in concurrent.futures.as_completed(futures):
                     pbar.update(1)
-                    res += future
-            except chess.engine.EngineTerminatedError as ex:
+                    res += future.result()
+            except (chess.engine.EngineTerminatedError, BrokenProcessPool) as ex:
                 print(
                     f"\nFATAL ERROR: Engine or worker crashed ({type(ex).__name__}: {ex}). Terminating immediately.",
                     file=sys.stderr,
                 )
                 sys.stdout.flush()
                 sys.stderr.flush()
-                e.terminate()
+                e.shutdown(wait=False, cancel_futures=True)
                 if sys.platform != "win32":
                     os.killpg(os.getpgrp(), signal.SIGKILL)
                 else:
