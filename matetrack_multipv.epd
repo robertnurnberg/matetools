@@ -4781,6 +4781,7 @@ N2B3R/Kp3kPn/3pb2P/3B4/3p3N/R7/3P3n/6r1 b - - bm #-11; PV: e6d5 g7g8q g1g8 h8h7 
 3B2R1/Kp3kPn/1N1pb2P/3B4/3p3N/R7/3P3n/6r1 b - -
 # FEN "3B4/3N2R1/p6p/2p1p2k/2b1K1p1/3p1prr/2n5/R5n1 w - - bm #5;" 33 33 33
 8/3N2R1/p6p/2p1p1Bk/2b1K1p1/3p1prr/2n5/R5n1 b - - bm #-4; PV: h6g5 a1a6 c4a6 d7f8 a6b7 g7b7 c2d4 b7h7;
+3B4/6R1/p4N1p/2p1p2k/2b1K1p1/3p1prr/2n5/R5n1 b - - bm #-6; PV: h5h4 f6d7 h4h5 d8g5 h6g5 a1a6 c4d5 e4e5 d5g8 g7g8 f3f2 g8h8;
 3B2R1/3N4/p6p/2p1p2k/2b1K1p1/3p1prr/2n5/R5n1 b - -
 3B4/3N1R2/p6p/2p1p2k/2b1K1p1/3p1prr/2n5/R5n1 b - -
 3B4/3N2R1/R6p/2p1p2k/2b1K1p1/3p1prr/2n5/6n1 b - -
@@ -4799,7 +4800,6 @@ N2B3R/Kp3kPn/3pb2P/3B4/3p3N/R7/3P3n/6r1 b - - bm #-11; PV: e6d5 g7g8q g1g8 h8h7 
 3B4/3N3R/p6p/2p1p2k/2b1K1p1/3p1prr/2n5/R5n1 b - -
 3B4/3N4/p6p/2p1p1Rk/2b1K1p1/3p1prr/2n5/R5n1 b - -
 3B4/3NR3/p6p/2p1p2k/2b1K1p1/3p1prr/2n5/R5n1 b - -
-3B4/6R1/p4N1p/2p1p2k/2b1K1p1/3p1prr/2n5/R5n1 b - -
 3B4/6R1/p6p/2p1N2k/2b1K1p1/3p1prr/2n5/R5n1 b - -
 3B4/6R1/pN5p/2p1p2k/2b1K1p1/3p1prr/2n5/R5n1 b - -
 8/2BN2R1/p6p/2p1p2k/2b1K1p1/3p1prr/2n5/R5n1 b - -
@@ -107602,8 +107602,8 @@ BB6/2K5/5p2/1P3P2/8/8/1pp1p1pp/brrbRn1k b - - bm #-9; PV: h1g1 b8a7 g1h1 b5b6 h1
 BB6/3K4/5p2/1P3P2/8/8/1pp1p1pp/brrbRn1k b - - bm #-9; PV: h1g1 b8a7 g1h1 b5b6 h1g1 b6b7 g1h1 a7d4 g2g1r b7b8q g1g2 d4f6 h1g1 b8g3 g2g3 f6d4 g3e3 d4e3;
 BB6/8/4Kp2/1P3P2/8/8/1pp1p1pp/brrbRn1k b - - bm #-9; PV: h1g1 b8a7 g1h1 b5b6 h1g1 b6b7 g1h1 a7f2 g2g1r b7b8q g1g2 f2g3 h1g1 b8b6 g1h1 b6b7 h1g1 b7g2;
 1B6/8/3K1p2/1P3P2/4B3/8/1pp1p1pp/brrbRn1k b - - bm #-11; PV: h1g1 b8a7 g1h1 b5b6 h1g1 b6b7 g1h1 d6c5 h1g1 b7b8q g1f2 c5c6 f2e1 b8b4 f1d2 e4g2 h2h1q g2h1 e1f1 b4d2 e2e1q d2g2;
+1B6/8/3K1p2/1P3P2/8/5B2/1pp1p1pp/brrbRn1k b - - bm #-14; PV: h1g1 b8a7 g1h1 b5b6 h1g1 b6b7 g1h1 d6c5 h1g1 c5c4 g1h1 c4d4 h1g1 b7b8q g1f2 d4e4 f2e1 f3g2 h2h1q g2h1 f1d2 e4d3 d2e4 h1e4 e1f1 b8f4 f1e1 f4f2;
 1B6/1B6/3K1p2/1P3P2/8/8/1pp1p1pp/brrbRn1k b - -
-1B6/8/3K1p2/1P3P2/8/5B2/1pp1p1pp/brrbRn1k b - -
 B7/2B5/3K1p2/1P3P2/8/8/1pp1p1pp/brrbRn1k b - -
 BB6/8/1P1K1p2/5P2/8/8/1pp1p1pp/brrbRn1k b - -
 BB6/8/2K2p2/1P3P2/8/8/1pp1p1pp/brrbRn1k b - -
