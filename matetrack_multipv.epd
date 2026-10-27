@@ -141813,8 +141813,8 @@ bnkB4/4K1p1/1Pp2p2/1pN1p3/3P1b2/pP3R2/7p/8 b - -
 # FEN "K1k5/3ppppp/8/8/8/7n/6p1/Q7 w - - bm #12;" 20 20 20
 K1k5/Q2ppppp/8/8/8/7n/6p1/8 b - - bm #-11; PV: d7d5 a7b7 c8d8 a8b8 e7e5 b7c7 d8e8 b8c8 f7f6 c7d7 e8f8 c8d8 g7g5 d7e7 f8g8 d8e8 h7h5 e7f8 g8h7 e8f7 g2g1q f8g7;
 K1k5/3ppppp/8/8/8/2Q4n/6p1/8 b - - bm #-20; PV: c8d8 a8b7 e7e6 c3g7 d8e7 g7g2 h3f4 g2g5 f7f6 g5f4 e6e5 f4f5 e7d6 f5h7 d6c5 h7h8 c5d6 h8f6 d6d5 b7c8 d5c5 c8d7 c5d5 d7e7 d5e4 e7e6 e4d4 f6e5 d4c4 e5e3 c4b5 e6d6 b5c4 d6c6 c4b4 e3d3 b4a4 c6c5 a4a5 d3b5;
+K1k5/3ppppp/8/4Q3/8/7n/6p1/8 b - - bm #-23; PV: d7d5 e5c3 c8d8 a8b8 d8d7 c3h3 d7c6 h3g2 g7g6 g2c2 c6d6 b8b7 h7h5 c2c7 d6e6 b7c6 d5d4 c7d7 e6f6 d7d4 f6g5 d4e3 g5g4 e3e7 f7f5 c6d5 h5h4 e7e3 f5f4 e3f2 g4f5 f2h4 f4f3 h4e4 f5g5 e4f3 g5h6 d5e5 h6g7 e5e6 g6g5 f3f7 g7h6 e6f6 g5g4 f7g6;
 K1k5/3pppQp/8/8/8/7n/6p1/8 b - -
-K1k5/3ppppp/8/4Q3/8/7n/6p1/8 b - -
 K1k5/3ppppp/8/8/3Q4/7n/6p1/8 b - -
 K1k5/3ppppp/8/8/8/7n/1Q4p1/8 b - -
 K1k5/3ppppp/8/8/8/7n/6p1/1Q6 b - -
