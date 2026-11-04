@@ -48,12 +48,13 @@ def analyze_and_print(
     info = filtered_analysis(engine, board, limit, multiPV, game, root_moves)
     if "score" in info:
         score = info["score"].pov(board.turn)
-        depth = info["depth"] if "depth" in info else None
-        nodes = info["nodes"] if "nodes" in info else None
+        depth = info.get("depth")
+        nodes = info.get("nodes")
+        hashfull = info.get("hashfull")
         pv = [m.uci() for m in info["pv"]] if "pv" in info else []
         bstr = "Final" if ply is None else f"ply {ply:3d},"
         print(
-            f"{bstr} score {score} (d{depth}, nodes {nodes}) PV: {' '.join(pv)}",
+            f"{bstr} score {score} (d{depth}, nodes {nodes}, hashfull {hashfull}) PV: {' '.join(pv)}",
             flush=True,
         )
         return score.mate(), pv
