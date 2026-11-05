@@ -78924,11 +78924,11 @@ R3rrq1/1PPPPPPP/Kpk1NN1n/3nb1p1/5p2/8/8/8 b - - bm #2; PV: e8a8 b7a8q f8a8;
 6b1/5p1k/8/4B1P1/5N2/8/4K3/8 b - - bm #-29; PV: f7f6 e5f6 g8c4 e2e3 c4f7 e3e4 h7g8 g5g6 f7a2 e4e5 a2b1 g6g7 g8h7 f4d5 b1a2 d5e7 h7h6 e5d6 a2b3 d6d7 b3f7 e7f5 h6h7 f6c3 h7g6 d7e7 f7a2 f5h4 g6g5 h4f3 g5f4 f3e5 a2g8 e7f8 g8h7 e5d7 f4e3 d7f6 e3d3 f6h7 d3c3 g7g8q c3b4 h7f6 b4c3 g8d5 c3c2 d5c4 c2b2 f6d7 b2a1 d7e5 a1b1 c4c3 b1a2 e5c4 a2b1 c3b2;
 6b1/5p1k/8/6P1/3B1N2/8/4K3/8 b - - bm #-29; PV: f7f6 d4f6 g8a2 g5g6 h7h6 g6g7 h6h7 e2d3 a2f7 d3d4 h7g8 f4d5 g8h7 d5e7 f7e6 d4e5 e6b3 e5d6 h7h6 d6d7 b3f7 e7f5 h6h7 f6b2 h7g6 d7e7 f7b3 f5h4 g6g5 h4f3 g5f4 f3e5 b3g8 e7f8 g8h7 e5d7 h7f5 g7g8q f5d7 g8d5 d7h3 d5e5 f4f3 b2d4 h3f1 f8e7 f3g2 e5e3 f1b5 e7f6 b5a4 e3f2 g2h3 d4e5 h3g4 f2g3 g4h5 g3g5;
 3B2b1/5p1k/8/6P1/5N2/8/4K3/8 b - - bm #-32; PV: h7g7 f4h5 g7g6 h5f6 g6g5 f6g8 g5f4 e2d3 f4e5 d8c7 e5d5 g8h6 f7f5 c7f4 d5c5 h6g8 c5d5 g8e7 d5c5 d3c3 c5b5 c3d4 b5b4 e7c6 b4b5 d4d5 b5b6 c6d4 b6a6 d5c5 a6b7 c5b5 b7c8 b5c6 c8d8 d4f5 d8e8 c6d6 e8d8 f5e7 d8e8 d6e6 e8d8 f4e5 d8e8 e5c7 e8f8 e7f5 f8e8 f5g7 e8f8 e6f6 f8g8 f6g6 g8f8 c7d6 f8g8 d6c5 g8h8 g7f5 h8g8 f5h6 g8h8 c5d4;
+6b1/5p1k/8/6P1/5N2/8/4K3/B7 b - - bm #-32; PV: f7f5 g5g6 h7h6 a1f6 g8c4 e2e3 c4e6 e3d4 e6b3 g6g7 b3g8 d4e5 g8f7 f4e6 f5f4 e6f4 f7c4 f4d5 h6h7 e5d6 c4b3 d5e7 b3f7 d6d7 h7h6 f6d4 h6h7 d7d8 h7h6 e7c6 h6h7 d8e7 h7g8 e7f6 f7c4 f6g6 c4d3 g6h6 d3e4 c6e7 g8f7 g7g8q f7e7 g8g7 e7d6 g7f6 d6c7 f6e7 c7c6 e7e4 c6b5 h6g7 b5c4 g7f7 c4b3 e4d3 b3b4 f7f8 b4a4 d3c4 a4a5 c4b3 a5a6 b3b6;
 6b1/4Bp1k/8/6P1/5N2/8/4K3/8 b - - bm #-35; PV: h7g7 f4h5 g7g6 h5f6 g6g5 f6g8 g5f4 g8f6 f4e5 e7d8 e5e6 e2f3 e6e5 f3e3 e5f5 f6h5 f5g4 h5f4 g4f5 d8c7 f5g4 f4d5 g4f5 c7f4 f7f6 d5b6 f5g6 e3e4 g6h5 e4f3 h5h4 b6d5 h4h5 d5f6 h5g6 f6d5 g6f7 d5b6 f7e6 f3g4 e6f6 f4g3 f6e6 g4g5 e6f7 g5f5 f7g8 b6d5 g8f7 g3h4 f7f8 f5e6 f8g7 h4f6 g7f8 f6e7 f8g7 d5f4 g7g8 e6f6 g8h7 e7f8 h7g8 f4e6 g8h8 f6f7 h8h7 e6g5 h7h8 f8g7;
 6b1/5p1k/5B2/6P1/8/3N4/4K3/8 b - - bm #-10000;
 6b1/5p1k/5B2/6P1/8/7N/4K3/8 b - - bm #-10000;
 6b1/5p1k/8/6P1/5N2/8/1B2K3/8 b - - bm #-10000;
-6b1/5p1k/8/6P1/5N2/8/4K3/B7 b - - bm #-10000;
 6b1/5p1k/4NB2/6P1/8/8/4K3/8 b - -
 6b1/5p1k/5BN1/6P1/8/8/4K3/8 b - -
 6b1/5p1k/5BP1/8/5N2/8/4K3/8 b - -
