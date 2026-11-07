@@ -56791,6 +56791,7 @@ N7/1p1Kp3/1B2P3/1P6/1pNP4/1k6/1P6/1B6 b - - bm #-8; PV: b3c4 b1c2 b4b3 c2b1 c4d5
 8/1pNKp3/1B2P3/1P6/1p1P4/Nk6/1P6/1B6 b - - bm #-11; PV: b3b2 a3c4 b2b1 d7e7 b1c2 e7f6 c2c3 e6e7 c3c4 e7e8q c4b3 e8e3 b3a2 c7d5 b4b3 d5c3 a2a3 b6c5 a3b2 e3d2 b2a1 d2c1;
 # FEN "8/3p4/3B4/p7/p3K1p1/2kNN1P1/P4P2/8 w - - bm #7;" 31 31 31
 8/3p4/3B4/p7/p3K1p1/P1kNN1P1/5P2/8 b - - bm #-6; PV: c3d2 e4d4 d2e2 d4c3 e2f3 c3d2 f3e4 d2e2 e4d4 d3c5 d4c3 d6e5;
+8/3p4/3B4/p1N5/p3K1p1/2k1N1P1/P4P2/8 b - - bm #-9; PV: a4a3 c5d7 a5a4 d6a3 c3d2 d7e5 d2e2 e5d3 e2d2 a3b4 d2e2 b4c3 a4a3 f2f4 g4f3 c3b4 f3f2 d3c1;
 8/3p4/3B4/p3N3/p3K1p1/2k1N1P1/P4P2/8 b - - bm #-9; PV: a4a3 e5g4 c3d2 f2f4 d2e2 f4f5 e2d2 f5f6 d2c1 f6f7 c1b1 f7f8q b1b2 f8f2 b2b1 f2c2 b1a1 d6e5;
 8/3p4/3B4/p7/p3K1N1/2kN2P1/P4P2/8 b - - bm #-9; PV: c3c2 a2a3 c2b3 g4e3 b3a2 g3g4 a2b1 g4g5 b1a2 g5g6 a2b1 g6g7 b1a1 g7g8q a1b1 g8b8 b1a1 b8b2;
 8/3p4/3B4/p7/p3K1p1/2kNNPP1/P7/8 b - - bm #-9; PV: g4f3 g3g4 c3d2 g4g5 d2c3 g5g6 f3f2 d3f2 c3b2 g6g7 a4a3 g7g8q a5a4 g8c4 b2a1 d6e5 a1b1 c4c2;
@@ -56800,7 +56801,6 @@ N7/1p1Kp3/1B2P3/1P6/1pNP4/1k6/1P6/1B6 b - - bm #-8; PV: b3c4 b1c2 b4b3 c2b1 c4d5
 1B6/3p4/8/p7/p3K1p1/2kNN1P1/P4P2/8 b - - bm #-10; PV: c3d2 a2a3 d7d5 e3d5 d2c2 d5e3 c2c3 b8e5 c3d2 e5d4 d2e2 d4b6 e2d2 b6a5 d2e2 f2f3 g4f3 a5b4 f3f2 d3c1;
 5B2/3p4/8/p7/p3K1p1/2kNN1P1/P4P2/8 b - - bm #-10; PV: a4a3 f8d6 c3d2 e3g4 d2c2 e4d4 a5a4 g4e3 c2d2 f2f4 d2e2 f4f5 e2d2 f5f6 d2e2 f6f7 e2d2 f7f8q d2e2 f8f2;
 8/2Bp4/8/p7/p3K1p1/2kNN1P1/P4P2/8 b - - bm #-10; PV: c3d2 a2a3 d7d5 e3d5 d2c2 d5e3 c2c3 c7d6 c3b3 e4d4 b3a2 d4c3 a2b1 d6e5 b1a2 c3c2 a2a3 e3c4 a3a2 d3c1;
-8/3p4/3B4/p1N5/p3K1p1/2k1N1P1/P4P2/8 b - - bm #-10; PV: c3b4 e3g4 b4a3 e4d4 a3b4 c5d7 b4b5 d4d5 a4a3 d6e5 b5a6 d5c6 a5a4 e5d4 a6a5 d7b8 a5b4 g4e5 b4a5 d4c3;
 8/3p4/3B4/p2N4/p3K1p1/2kN2P1/P4P2/8 b - - bm #-10; PV: c3c4 d3e5 c4b5 a2a3 b5a6 d5e7 a6b6 e5d7 b6a6 e4d5 a6b7 d5c5 b7a7 c5c6 a7a6 d6e5 a6a7 e7c8 a7a8 d7b6;
 8/3p4/3B4/p4N2/p3K1p1/2kN2P1/P4P2/8 b - - bm #-10; PV: a4a3 f5e3 c3d2 e3g4 d2c2 g4e3 c2b1 e4d4 b1a2 d4c3 a2b1 e3c4 a5a4 c4a3 b1a1 c3c2 a1a2 d3c1 a2a1 d6e5;
 8/3p4/3B4/p7/p3K1p1/2k1N1P1/P4P2/2N5 b - - bm #-10; PV: c3d2 c1d3 a4a3 e3g4 d2c2 e4d4 c2d2 g4e3 d2e2 d4c3 e2f3 c3d2 a5a4 d2d1 f3e4 d1e2 e4d4 d6e5 d4e4 f2f3;
