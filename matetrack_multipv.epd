@@ -159766,9 +159766,9 @@ B1b5/2B5/5p2/PpkPpp1K/4PpPb/N1Pp4/4P1np/2n5 b - - bm #27; PV: h4g5 h5g6 h2h1q c7
 # FEN "8/1p6/4NNK1/pp6/qnp5/1pkp4/bppn4/rrb5 w - - bm #17;" 23 23 23
 8/1p4K1/4NN2/pp6/qnp5/1pkp4/bppn4/rrb5 b - - bm #-16; PV: a4a3 g7f7 a3a4 f7e8 a4a3 e8d7 a3a4 d7c8 b7b6 c8d7 a4a3 d7e8 a3a4 e8f8 a4a3 f8f7 a3a4 f7e8 a4a3 e8d7 a3a4 d7c8 a4a3 c8b7 a3a4 b7b6 a4a3 b6b5 a5a4 b5b6 d2e4 f6e4;
 8/1p3K2/4NN2/pp6/qnp5/1pkp4/bppn4/rrb5 b - - bm #-17; PV: a4a3 f7e8 a3a4 e8d7 a4a3 d7c8 a3a4 c8b7 a4a3 b7c8 a3a4 c8d7 a4a3 d7e8 a3a4 e8f8 a4a3 f8f7 a3a4 f7e8 a4a3 e8d7 a3a4 d7c8 a4a3 c8b7 a3a4 b7b6 a4a3 b6b5 a5a4 b5b6 d2e4 f6e4;
-8/1p5K/4NN2/pp6/qnp5/1pkp4/bppn4/rrb5 b - -
-8/1p6/4NN2/pp3K2/qnp5/1pkp4/bppn4/rrb5 b - -
-8/1p6/4NN2/pp5K/qnp5/1pkp4/bppn4/rrb5 b - -
+8/1p5K/4NN2/pp6/qnp5/1pkp4/bppn4/rrb5 b - - bm #-18; PV: a4a3 h7g6 a3a4 g6g7 a4a3 g7f7 a3a4 f7e8 a4a3 e8d7 a3a4 d7c8 b7b6 c8d7 a4a3 d7e8 a3a4 e8f8 a4a3 f8f7 a3a4 f7e8 a4a3 e8d7 a3a4 d7c8 a4a3 c8b7 a3a4 b7b6 a4a3 b6b5 a5a4 b5b6 d2f1 f6e4;
+8/1p6/4NN2/pp3K2/qnp5/1pkp4/bppn4/rrb5 b - - bm #-18; PV: a4a3 f5g6 a3a4 g6g7 a4a3 g7f7 a3a4 f7e8 a4a3 e8d7 a3a4 d7c8 b7b6 c8d7 a4a3 d7e8 a3a4 e8f8 a4a3 f8f7 a3a4 f7e8 a4a3 e8d7 a3a4 d7c8 a4a3 c8b7 a3a4 b7b6 a4a3 b6b5 a5a4 b5b6 d2f1 f6e4;
+8/1p6/4NN2/pp5K/qnp5/1pkp4/bppn4/rrb5 b - - bm #-18; PV: a4a3 h5g6 a3a4 g6g7 a4a3 g7f7 a3a4 f7e8 a4a3 e8d7 a3a4 d7c8 b7b6 c8d7 a4a3 d7e8 a3a4 e8f8 a4a3 f8f7 a3a4 f7e8 a4a3 e8d7 a3a4 d7c8 a4a3 c8b7 a3a4 b7b6 a4a3 b6b5 a5a4 b5b6 d2f1 f6e4;
 8/1p4N1/5NK1/pp6/qnp5/1pkp4/bppn4/rrb5 b - - bm #17; PV: b4c6 f6d5 c3d4 d5f6 c6e7 g6f7 a4b4 g7e6 d4c3 e6c7 b4c5 c7e6 c5f5 e6g7 f5g6 f7e7 g6g7 e7e6 g7g6 e6e7 g6f5 f6d5 f5d5 e7e8 d5d6 e8f7 d2e4 f7g8 d6c7 g8f8 c1h6 f8e8 e4d6;
 8/1p6/5NK1/ppN5/qnp5/1pkp4/bppn4/rrb5 b - - bm #16; PV: b4c6 c5e6 c3b4 f6d5 b4a3 g6f5 c6e7 d5e7 c4c3 f5f6 a4h4 f6f7 h4h5 f7f8 d2e4 e7c8 h5h8 f8e7 h8c8 e6d4 c8c5 e7f7 c5d4 f7e6 d4f6 e6d5 f6e7 d5d4 e7e6 d4d3 e6c4;
 8/1p6/5NK1/pp4N1/qnp5/1pkp4/bppn4/rrb5 b - - bm #14; PV: b4c6 g5e6 c6e7 g6f7 a4b4 e6c7 b4c5 c7e6 c5f5 e6g7 f5g6 f7e7 d2e4 f6d5 c3d4 e7d7 d4d5 g7f5 g6f5 d7c7 f5e6 c7d8 e6c6 d8e7 c1h6 e7d8 h6g5;
